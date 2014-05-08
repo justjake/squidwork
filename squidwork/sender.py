@@ -1,6 +1,7 @@
 import json
+from datetime import datetime
 
-from .message import ENCODING, DEFAULT_ORIGIN, Message
+from .message import TIME_FORMAT, ENCODING, DEFAULT_ORIGIN, Message
 
 class MessageEncoder(json.JSONEncoder):
     """
@@ -13,9 +14,12 @@ class MessageEncoder(json.JSONEncoder):
     def default(self, obj):
         # encode messages
         if isinstance(obj, Message):
-            return {'content': self.default(obj.content),
+            return {'content': obj.content,
                     'origin': obj.origin,
                     'time': obj.time}
+
+        if isinstance(obj, datetime):
+            return obj.strftime(TIME_FORMAT)
 
         # TODO: right wrongs with python3
         return super(MessageEncoder, self).default(obj)
@@ -58,6 +62,6 @@ class Sender(object):
             m.time = time
 
         # wee
-        data = json.dumps(cls=self.encoder).encode(ENCODING)
+        data = json.dumps(m, cls=self.encoder).encode(ENCODING)
         origin = self.origin.encode(ENCODING)
-        self.socket.send_multipart([origin, data], copy=false)
+        self.socket.send_multipart([origin, data], copy=False)

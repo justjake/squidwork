@@ -2,7 +2,7 @@ from socket import gethostname
 from datetime import datetime
 
 DEFAULT_ORIGIN = gethostname()
-TIME_FORMAT = "%Y-%m-%d %H:%M"
+TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%f"
 ENCODING = 'utf-8'
 
 class Message(object):
@@ -22,14 +22,14 @@ class Message(object):
              for what qualifies.
     """
     def __init__(self, content, origin=None, time=None):
-        self.origin = (origin or 'any') + '@' + DEFAULT_ORIGIN
+        self.origin = origin or ('any@' + DEFAULT_ORIGIN)
         self.time = time or datetime.now()
         self.content = content
 
     def __str__(self):
         return "<Message from {origin} at {time}: {content}>".format(
                     origin=self.origin,
-                    time=self.time.strftime(TIME_FORMAT),
+                    time=self.time.isoformat(),
                     content=str(self.content))
 
     def __repr__(self):
@@ -43,10 +43,9 @@ class Message(object):
         """
         Deserialize a JSON map of a message into a Messsage instance
         """
-        if ('content' in json_map and 
-            'origin'  in json_map and 
+        if ('content' in json_map and 'origin' in json_map and 
             'time'    in json_map):
             return cls(json_map['content'], 
-                    time=datetime.strptime(json_content['time']),
+                    time=datetime.strptime(json_map['time'], TIME_FORMAT),
                     origin=json_map['origin'])
         raise ValueError('Could not decode {} as {}'.format(str(json_map), str(cls)))

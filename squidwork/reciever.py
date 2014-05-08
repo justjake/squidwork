@@ -14,12 +14,12 @@ class Reciever(object):
 
     def __init__(self, subscription_path, socket):
         self.socket = socket
-        self._prefix = subscription_path
-        self.socket.set_string(SUBSCRIBE, subscription_path)
+        self._prefix = unicode(subscription_path)
+        self.socket.set_string(SUBSCRIBE, self._prefix)
         
     @property
     def prefix(self):
-        return self.prefix
+        return self._prefix
 
     def recieve(self):
         """
@@ -28,5 +28,5 @@ class Reciever(object):
         parts = self.socket.recv_multipart()
         # we don't care about the header
         data_str = parts[1].decode(ENCODING)
-        data = json.loads(dat_str)
+        data = json.loads(data_str)
         return Message.deserialize(data)
