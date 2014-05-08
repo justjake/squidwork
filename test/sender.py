@@ -5,12 +5,12 @@ from squidwork import Sender
 
 def main():
     context = zmq.Context.instance()
-    socket = content.socket(zmq.PUB)
+    socket = context.socket(zmq.PUB)
     sender = Sender('test', socket)
 
-    socket.bind('ipc://tmp/squidwork_test')
+    socket.bind('tcp://127.0.0.1:9999')
 
-    loop(sender, 10)
+    loop(sender, 3.0)
 
 def loop(sender, sleeps):
     k = 0

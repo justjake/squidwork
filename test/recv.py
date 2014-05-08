@@ -5,17 +5,18 @@ from squidwork import Reciever
 
 def main():
     context = zmq.Context.instance()
-    socket = content.socket(zmq.PUB)
-    reciever = Reciever('test', socket)
+    socket = context.socket(zmq.SUB)
+    socket.connect("tcp://127.0.0.1:9999")
+    # socket.connect('ipc://tmp/squidwork_test')
 
-    socket.connect('ipc://tmp/squidwork_test')
+    reciever = Reciever('test', socket)
 
     loop(reciever)
 
 def loop(reciever):
     while True:
         try:
-            pprint(reciever.recive())
+            pprint(reciever.recieve())
         except ValueError as e:
             pprint(e)
 
