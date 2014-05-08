@@ -12,7 +12,7 @@ class Reciever(object):
     connect() it or anything
     """
 
-    def __init__(self, socket, subscription_path):
+    def __init__(self, subscription_path, socket):
         self.socket = socket
         self._prefix = subscription_path
         self.socket.set_string(SUBSCRIBE, subscription_path)

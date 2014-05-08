@@ -26,7 +26,7 @@ class Sender(object):
     Sends messages following the protocol for you
     """
 
-    def __init__(self, socket, app_name, encoder=None):
+    def __init__(self, app_name, socket, encoder=None):
         """
         create with a ZeroMQ socket and a name for this endpoint.
         socket: ZeroMQ socket
@@ -41,10 +41,23 @@ class Sender(object):
 
     def send(self, content, time=None):
         """
-        Send JSON content over the wire
+        Send JSON content over the wire.
+        content: any JSON encodable content to be wrapped in a new Message, 
+                 or a pre-pepared Message instance of your own.
+        time:    override time with this value.
         """
-        # create message, time of time now
-        m = Message(content, origin=self.origin, time=None)
+        # don't wrap messages!
+        if isinstance(content, Message):
+            m = content
+        else:
+            # create message, time of time now
+            m = Message(content, origin=self.origin)
+
+        # override time if requested
+        if time:
+            m.time = time
+
+        # wee
         data = json.dumps(cls=self.encoder).encode(ENCODING)
         origin = self.origin.encode(ENCODING)
         self.socket.send_multipart([origin, data], copy=false)
