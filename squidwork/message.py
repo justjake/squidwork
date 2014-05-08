@@ -22,7 +22,7 @@ class Message(object):
              for what qualifies.
     """
     def __init__(self, content, origin=None, time=None):
-        self.origin = origin or DEFAULT_ORIGIN
+        self.origin = (origin or 'any') + '@' + DEFAULT_ORIGIN
         self.time = time or datetime.now()
         self.content = content
 
