@@ -25,6 +25,6 @@ More info: http://api.zeromq.org/4-0:zmq-setsockopt#toc6
 
 __author__ = 'Jake Teton-Landis <just.1.jake@gmail.com>'
 
-from meessage import MessageEncoder
+from message import Message
 from reciever import Reciever
 from sender import Sender, MessageEncoder
