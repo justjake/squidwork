@@ -33,7 +33,7 @@ class Message(object):
                     content=str(self.content))
 
     def __repr__(self):
-        return "squidworks.Message({content}, {origin}, {time})".format(
+        return "squidwork.Message({content}, {origin}, {time})".format(
                 content=repr(self.content),
                 origin=repr(self.origin),
                 time=repr(self.time))
