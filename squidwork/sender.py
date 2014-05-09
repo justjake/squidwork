@@ -1,7 +1,8 @@
 import json
 from datetime import datetime
 
-from .message import TIME_FORMAT, ENCODING, DEFAULT_ORIGIN, Message
+from .routing import Origin, Route
+from .message import TIME_FORMAT, ENCODING, Message
 
 class MessageEncoder(json.JSONEncoder):
     """
@@ -12,16 +13,20 @@ class MessageEncoder(json.JSONEncoder):
     See the JSON docs for more information
     """
     def default(self, obj):
-        # encode messages
+        # messages become a hashmap
         if isinstance(obj, Message):
             return {'content': obj.content,
                     'origin': obj.origin,
                     'time': obj.time}
 
+        # datetimes become the ISO format of datetime
         if isinstance(obj, datetime):
             return obj.strftime(TIME_FORMAT)
 
-        # TODO: right wrongs with python3
+        # origins are encoded to the string representations
+        if isinstance(obj, Origin):
+            return str(obj)
+
         return super(MessageEncoder, self).default(obj)
 
 
@@ -30,7 +35,7 @@ class Sender(object):
     Sends messages following the protocol for you
     """
 
-    def __init__(self, app_name, socket, encoder=None):
+    def __init__(self, socket, route='', encoder=None):
         """
         create with a ZeroMQ socket and a name for this endpoint.
         socket: ZeroMQ socket
@@ -38,8 +43,7 @@ class Sender(object):
         encoder: subclass of our MessageEncoder that JSON-encodes
                  your objects
         """
-
-        self.origin = str(app_name) + '@' + DEFAULT_ORIGIN
+        self.origin = Origin(route=Route(route))
         self.socket = socket
         self.encoder = encoder or MessageEncoder
 
@@ -63,5 +67,5 @@ class Sender(object):
 
         # wee
         data = json.dumps(m, cls=self.encoder).encode(ENCODING)
-        origin = self.origin.encode(ENCODING)
+        origin = str(self.origin).encode(ENCODING)
         self.socket.send_multipart([origin, data], copy=False)

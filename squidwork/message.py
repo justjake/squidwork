@@ -1,7 +1,8 @@
 from socket import gethostname
 from datetime import datetime
 
-DEFAULT_ORIGIN = gethostname()
+from .routing import Origin
+
 TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%f"
 ENCODING = 'utf-8'
 
@@ -21,8 +22,8 @@ class Message(object):
     content: some JSON-serializable content. Refer to Python's stdlib docs
              for what qualifies.
     """
-    def __init__(self, content, origin=None, time=None):
-        self.origin = origin or ('any@' + DEFAULT_ORIGIN)
+    def __init__(self, content, origin='', time=None):
+        self.origin = origin or build_origin(origin)
         self.time = time or datetime.now()
         self.content = content
 
@@ -38,6 +39,15 @@ class Message(object):
                 origin=repr(self.origin),
                 time=repr(self.time))
 
+    @property
+    def route(self):
+        """
+        The API endpoint this message comes from. Note that not starting
+        a route with PREFIX will prevent default handlers from catching it.
+        """
+        route = self.origin.split(HOST_SEPERATOR)
+        return route[0]
+
     @classmethod
     def deserialize(cls, json_map):
         """
@@ -47,5 +57,5 @@ class Message(object):
             'time'    in json_map):
             return cls(json_map['content'], 
                     time=datetime.strptime(json_map['time'], TIME_FORMAT),
-                    origin=json_map['origin'])
+                    origin=Origin.deserialize(json_map['origin']))
         raise ValueError('Could not decode {} as {}'.format(str(json_map), str(cls)))

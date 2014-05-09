@@ -1,5 +1,6 @@
 import json
 
+from .routing import Route 
 from .message import Message, ENCODING
 
 from zmq import SUBSCRIBE
@@ -12,10 +13,10 @@ class Reciever(object):
     connect() it or anything
     """
 
-    def __init__(self, subscription_path, socket):
+    def __init__(self, socket, route=''):
         self.socket = socket
-        self._prefix = unicode(subscription_path)
-        self.socket.set_string(SUBSCRIBE, self._prefix)
+        self._prefix = Route(route)
+        self.socket.set_string(SUBSCRIBE, unicode(self._prefix))
         
     @property
     def prefix(self):
