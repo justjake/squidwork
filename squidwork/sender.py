@@ -69,3 +69,7 @@ class Sender(object):
         data = json.dumps(m, cls=self.encoder).encode(ENCODING)
         origin = str(self.origin).encode(ENCODING)
         self.socket.send_multipart([origin, data], copy=False)
+
+    def __repr__(self):
+        return 'squidwork.Sender(origin={oi})'.format(
+                oi=self.origin)
