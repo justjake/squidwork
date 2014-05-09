@@ -15,13 +15,22 @@ class Route(object):
     """
     def __init__(self, path=''):
         self.path = path
-        if path.startswith(PREFIX):
-            self.path=path[len(PREFIX):]
+
+        # if we already have the prefix, remove it
+        if path.startswith(PREFIX + SEPERATOR):
+            self.path=path[len(PREFIX + SEPERATOR):]
+
+        # if we are the prefix, remove everything
+        if path == PREFIX:
+            self.path = ''
 
     def __str__(self):
         if self.path:
             return PREFIX + SEPERATOR + self.path
         return PREFIX
+
+    def __repr__(self):
+        return '<Route {}>'.format(str(self))
 
 
 class Origin(object):
@@ -40,7 +49,7 @@ class Origin(object):
         return str(self.route) + HOST_SEPERATOR + self.hostname
 
     def __repr__(self):
-        return str(self)
+        return '<Origin {}>'.format(str(self))
 
     @property
     def path(self):
@@ -52,6 +61,9 @@ class Origin(object):
 
     @classmethod
     def deserialize(cls, string):
+        """
+        Turns a string'd origin into a real one
+        """
         (route, hostname) = string.split(HOST_SEPERATOR)
         route = Route(route)
         return Origin(hostname=hostname, route=route)
