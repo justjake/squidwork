@@ -1,0 +1,5 @@
+Services:
+    - prefix: beep/sender
+      uri:    tcp://127.0.0.1:5656
+    - prefix: boop/sender
+      uri:    tcp://127.0.0.1:5757
