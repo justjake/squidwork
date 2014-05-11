@@ -1,5 +1,6 @@
-# squidwork.
+![putting the squid in squidwork](http://i.imgur.com/cqFMQIH.png)
 
+# squidwork.
 Simple JSON wrapper protocol for ZeroMQ.
 
 ## Protocol: Pub-Sub Message Envelopes
