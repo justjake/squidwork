@@ -2,7 +2,6 @@ from __future__ import print_function
 """
 Listens to everything configured in your config file, and logs it.
 """
-import logging
 import threading
 from datetime import datetime
 from pprint import pprint as pp
@@ -17,15 +16,21 @@ from squidwork import Reciever
 def main():
     services = config.get_services()
 
+    print("All services:")
     pp(services)
 
-    uris = set([svc.uri for svc in services])
-    #uris = ['tcp://127.0.0.1:9999']
+    uris = set()
+    for svc in services:
+        uris = uris.union(svc.URIs)
+
     threads = [create_listener_thread(u) for u in uris]
+
     for t in threads:
-        t.daemon = True
+        t.daemon = True # i don't really know what this does
         t.start()
+
     while True:
+        # wait for death
         sleep(1)
 
 def log(message):
@@ -48,7 +53,6 @@ def create_listener_thread(uri):
     def body():
         print('Listening for all messages from ' + uri)
         recv = Reciever(sub(uri))
-        print(str(recv.prefix))
         while True:
             log(recv.recieve())
     return threading.Thread(target=body)

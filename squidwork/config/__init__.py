@@ -15,5 +15,5 @@ having to juggle more than one config file.
 
 __author__ = 'Jake Teton-Landis'
 
-from .opts import create, get_services
-from .service import Service
+from .opts import create_argparser, get_services, get_config
+from .service import Service, import_data

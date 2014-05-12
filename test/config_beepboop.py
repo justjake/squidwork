@@ -13,10 +13,10 @@ senders = {}
 pp("Creating senders...")
 for name in our_names:
     route = name + '/sender'
-    service = Service.for_prefix(route)
-    uri = service.uri
-    print("Got URI: " + str(uri))
-    sender = Sender(pub(uri), route)
+    service = Service.for_exact_prefix(route)
+    uris = service.URIs
+    print("Got URIs: " + str(uris))
+    sender = Sender(pub(*uris), route)
     senders[name] = sender
 
 pp("Done:")

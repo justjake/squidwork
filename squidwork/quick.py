@@ -13,20 +13,20 @@ just a default context, nothing to see here
 
 context = zmq.Context.instance()
 
-def pub(uri=None):
+def pub(*uris):
     """
     create a publish socket, and optionally bind it.
     """
     socket = context.socket(zmq.PUB)
-    if uri:
-        socket.bind(uri)
+    for u in uris:
+        socket.bind(u)
     return socket
 
-def sub(uri=None):
+def sub(*uris):
     """
     Create a subscribe socket, and optionally connect it.
     """
     socket = context.socket(zmq.SUB)
-    if uri:
-        socket.connect(uri)
+    for u in uris:
+        socket.connect(u)
     return socket

@@ -4,13 +4,14 @@ from urlparse import urlparse
 from urllib2 import urlopen
 from pprint import pprint as pp
 
-from .service import import_yaml_data
+from .service import import_data
 
-def create():
+def create_argparser():
     """
     An option parser with the config option
     """
-    parser = argparse.ArgumentParser(description="ZeroMQ service with yaml configuration file")
+    parser = argparse.ArgumentParser(
+            description="ZeroMQ service with yaml configuration file")
     parser.add_argument('-c', '--config', metavar='PATH', required=True,
             help='YAML file with service definitions, supports http')
     return parser
@@ -29,11 +30,19 @@ def get_config(location):
     return yaml.safe_load(f)
 
 def get_services():
-    parser = create()
+    """
+    gets all the services from the command-line options.
+    """
+    parser = create_argparser()
     args = parser.parse_args()
     config = get_config(args.config)
-    services = import_yaml_data(config)
+    services = import_data(config)
     return services
+
+def main():
+    print "Getting all services..."
+    pp(get_services())
+
 
 if __name__ == '__main__':
     main()
