@@ -65,7 +65,7 @@ from squidwork.quick import pub
 from squidwork import Sender
 from time import sleep
 
-endpoint = Sender(pub('tcp://127.0.0.1'))
+endpoint = Sender(pub('tcp://127.0.0.1:6696'))
 while True:
     sleep(3)
     endpoint.send(['hello', 'world'])
@@ -76,7 +76,7 @@ while True:
 from squidwork.quick import pub
 from squidwork import Sender
 
-reciever = Reciever(sub('tcp://127.0.0.1'))
+reciever = Reciever(sub('tcp://127.0.0.1:6696'))
 while True:
     # this call blocks
     message = reciever.recieve()
