@@ -25,6 +25,19 @@ class Route(object):
             self.path = ''
 
     def __str__(self):
+        """
+        >>> str(Route())
+        'all'
+
+        >>> str(Route('all'))
+        'all'
+
+        >>> str(Route('some/route'))
+        'all/some/route'
+
+        >>> str(Route('all/some/route'))
+        'all/some/route'
+        """
         if self.path:
             return PREFIX + SEPERATOR + self.path
         return PREFIX
@@ -46,6 +59,13 @@ class Origin(object):
         self.hostname = hostname
 
     def __str__(self):
+        """
+        >>> str(Origin('some.host'))
+        'all@some.host'
+
+        >>> str(Origin('some.host', Route('some/path')))
+        'all/some/path@some.host'
+        """
         return str(self.route) + HOST_SEPERATOR + self.hostname
 
     def __repr__(self):
@@ -67,3 +87,7 @@ class Origin(object):
         (route, hostname) = string.split(HOST_SEPERATOR)
         route = Route(route)
         return Origin(hostname=hostname, route=route)
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
