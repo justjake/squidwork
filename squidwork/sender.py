@@ -35,7 +35,7 @@ class Sender(object):
     Sends messages following the protocol for you
     """
 
-    def __init__(self, socket, route='', encoder=None):
+    def __init__(self, socket, route='', hostname='', encoder=None):
         """
         create with a ZeroMQ socket and a name for this endpoint.
         socket: ZeroMQ socket
@@ -43,32 +43,41 @@ class Sender(object):
         encoder: subclass of our MessageEncoder that JSON-encodes
                  your objects
         """
-        self.origin = Origin(route=Route(route))
+        self.origin = Origin(route=Route(route), hostname=hostname)
         self.socket = socket
         self.encoder = encoder or MessageEncoder
 
-    def send(self, content, time=None):
+    def send_message(self, message):
+        """
+        Send a raw message over the socket, unmodified.
+        """
+        # wee
+        data = json.dumps(message, cls=self.encoder).encode(ENCODING)
+        origin = str(self.origin).encode(ENCODING)
+        self.socket.send_multipart([origin, data], copy=False)
+        return message
+
+    def create_message(self, content, origin=None, time=None):
+        """
+        Create a new message with our origin
+        """
+        return Message(content, origin=(origin or self.origin),
+                time=time)
+
+    def send(self, content, path='', time=None):
         """
         Send JSON content over the wire.
         content: any JSON encodable content to be wrapped in a new Message, 
                  or a pre-pepared Message instance of your own.
-        time:    override time with this value.
+        path:    a suffix path, special for this event
+        time:    use this time instead of the current time for the message
         """
-        # don't wrap messages!
-        if isinstance(content, Message):
-            m = content
-        else:
-            # create message, time of time now
-            m = Message(content, origin=self.origin)
+        m = self.create_message(content, time=time, 
+                origin=self.origin.route_to(path))
+        return self.send_message(m)
 
-        # override time if requested
-        if time:
-            m.time = time
-
-        # wee
-        data = json.dumps(m, cls=self.encoder).encode(ENCODING)
-        origin = str(self.origin).encode(ENCODING)
-        self.socket.send_multipart([origin, data], copy=False)
+    def send_path(self, path, content):
+        return self.send(content, path=path)
 
     def __repr__(self):
         return 'squidwork.Sender(origin={oi})'.format(
