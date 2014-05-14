@@ -40,13 +40,12 @@ class Message(object):
                 time=repr(self.time))
 
     @property
-    def route(self):
+    def path(self):
         """
         The API endpoint this message comes from. Note that not starting
         a route with PREFIX will prevent default handlers from catching it.
         """
-        route = self.origin.split(HOST_SEPERATOR)
-        return route[0]
+        return self.origin.route.path
 
     @classmethod
     def deserialize(cls, json_map):
