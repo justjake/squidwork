@@ -52,7 +52,7 @@ string 'all'.
 
 [1]: http://api.zeromq.org/4-0:zmq-setsockopt#toc6
 
-## module `quick`
+## module `squidwork.quick`
 
 You can use `squidwork.quick.pub` and `squidwork.quick.sub` to
 create the type of ZeroMQ socket you need to send or receive events,
@@ -86,6 +86,27 @@ while True:
     print message.content
 ```
 
+## module `squidwork.websocket`
+
+This module provides an implementation of the protocol over Websockets
+for Javascript clients. I'm only planning on implementing subscribing 
+features, no publishing. Here's my idea:
+
+```html
+<script type="text/javascript" src="http://squidwork.internal/squidwork.js"></script>
+```
+```coffeescript
+# squidwork imported into `window` namespace already
+endpoint = squidwork.reciever 'tcp://192.168.0.1:9999', 'ear/active', (message) ->
+    document.body.innerHTML = message.content
+
+# ... things happen ..
+endpoint.close()
+```
+
+This is implemented on top of the Tornado event loop in python and ZeroMQ
+streams.
+
 ## Service definitions
 
 squidwork also provides a main-entrypoint framework for loading
@@ -102,7 +123,8 @@ is so far untested).
 ### Requirements
 
 1. pyzmq
-2. pyyaml (for config only)
+2. pyyaml  (for config)
+3. tornado (for squidwork.websocket, which depends on config)
 
 ### Integration Tests
 

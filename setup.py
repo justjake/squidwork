@@ -6,9 +6,10 @@ setup(name='squidwork',
         author='Jake Teton-Landis',
         author_email='just.1.jake@gmail.com',
         url='https://github.com/justjake/squidwork',
-        packages=['squidwork', 'squidwork.config'],
+        packages=['squidwork', 'squidwork.config', 'squidwork.websocket'],
         install_requires=[
           "pyzmq",
-          "pyyaml"
+          "pyyaml",
+          "tornado" # for websocket
           ]
         )
