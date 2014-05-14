@@ -14,6 +14,7 @@ class Route(object):
     An API path
     """
     def __init__(self, path=''):
+        path = str(path)
         self.path = path
 
         # if we already have the prefix, remove it
@@ -42,6 +43,21 @@ class Route(object):
             return PREFIX + SEPERATOR + self.path
         return PREFIX
 
+    def route_to(self, suffix):
+        """
+        return a route from this route to the suffix
+
+        >>> str(Route('root/path').route_to('sub/path'))
+        'all/root/path/sub/path'
+
+        >>> str(Route('root/path').route_to('/'))
+        'all/root/path'
+        """
+        if suffix == '' or suffix == SEPERATOR:
+            return Route(str(self))
+
+        return Route(self.path + SEPERATOR + suffix)
+
     def __repr__(self):
         return '<Route {}>'.format(str(self))
 
@@ -52,11 +68,11 @@ class Origin(object):
     """
     def __init__(self, hostname=DEFAULT_HOSTNAME, route=None):
         # enforce starts with 'all'
-        if isinstance(route, str):
+        if not isinstance(route, Route):
             route = Route(route)
 
         self.route = route or Route()
-        self.hostname = hostname
+        self.hostname = hostname or DEFAULT_HOSTNAME
 
     def __str__(self):
         """
@@ -70,6 +86,10 @@ class Origin(object):
 
     def __repr__(self):
         return '<Origin {}>'.format(str(self))
+
+    def route_to(self, suffix):
+        return Origin(hostname=self.hostname, 
+                route=self.route.route_to(suffix))
 
     @property
     def path(self):
@@ -87,6 +107,7 @@ class Origin(object):
         (route, hostname) = string.split(HOST_SEPERATOR)
         route = Route(route)
         return Origin(hostname=hostname, route=route)
+
 
 if __name__ == '__main__':
     import doctest
