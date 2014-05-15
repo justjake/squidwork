@@ -90,7 +90,7 @@ while True:
 
 This module provides an implementation of the protocol over Websockets
 for Javascript clients. I'm only planning on implementing subscribing 
-features, no publishing. Here's my idea:
+features, no publishing. Here's a somple example:
 
 ```html
 <script type="text/javascript" src="http://squidwork.internal/squidwork.js"></script>
@@ -105,7 +105,15 @@ endpoint.close()
 ```
 
 This is implemented on top of the Tornado event loop in python and ZeroMQ
-streams.
+streams. To run the bridge, execute the following:
+
+```shell
+python -m squidwork.websocket -c ./config.yml
+```
+
+If you direct your browser to `http://localhost:8888` you will see a mostly-blank
+page that directs you to open your eveloper console. From there you can inspect
+the configuration data and create new subscriptions!
 
 ## Service definitions
 
