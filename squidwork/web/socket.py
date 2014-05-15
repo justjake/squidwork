@@ -5,8 +5,7 @@ from squidwork.sender import MessageEncoder
 from squidwork.quick import sub
 from squidwork.async import AsyncReciever
 
-from squidwork.websocket.web import pretty_json
-
+from squidwork.web.handlers import pretty_json
 
 
 ACTION = 'action'
@@ -15,7 +14,7 @@ SUB =    'SUB'
 UNSUB =  'UNSUB'
 
 
-class SquidworkWebSocket(websocket.WebSocketHandler):
+class BridgeWebSocket(websocket.WebSocketHandler):
     """
     A JSON API to subscribe/unsubscribe from squidwork sockets.
     Currently provides no security, so could be leveredged for DoS

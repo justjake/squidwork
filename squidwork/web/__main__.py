@@ -7,9 +7,9 @@ Puts it all together.
 """
 import tornado
 
-from squidwork.websocket import create_application
+from squidwork.web import create_application
 from squidwork.config import get_config
-from squidwork.websocket.config import create_argparser, get_port
+from squidwork.web.config import create_argparser, get_port
 
 def main():
     parser = create_argparser(prog='python -m squidwork.websocket')
