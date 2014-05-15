@@ -103,7 +103,6 @@ class Squidwork
     """
 
     if @debug
-      console.log("SQUIDWORK: event:", event)
       console.log("SQUIDWORK: raw data:", event.data)
 
     data = JSON.parse(event.data)
@@ -169,5 +168,6 @@ class Squidwork
 # with the correct websocket values
 ###
 WEBSOCKET_URI = '{{ WEBSOCKET_URI }}'
-window.squidwork = new Squidwork(WEBSOCKET_URI, false)
+DEBUG = '{{ DEBUG }}' == 'True'
+window.squidwork = new Squidwork(WEBSOCKET_URI, DEBUG)
 window.SquidworkConnection = Squidwork

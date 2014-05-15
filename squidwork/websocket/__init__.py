@@ -23,7 +23,8 @@ def create_application(config, **settings):
     del settings['port']
     application = tornado.web.Application([
         (r"/squidwork.js", CoffeescriptHandler, 
-            dict(source='templates/squidwork.coffee', socket_name='websocket')),
+            dict(source='templates/squidwork.coffee', socket_name='websocket',
+                debug=settings['debug'])),
         (r"/connect.ws", SquidworkWebSocket, None, 'websocket'),
         (r"/config.json", JSONHandler, 
             dict(data=config)),

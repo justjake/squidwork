@@ -5,19 +5,38 @@
   squidwork - console
 </title>
 <script src="/squidwork.js" type="text/javascript"></script>
+<script src="/config.json?var=squidwork.config" type="text/javascript"></script>
 <script type="text/javascript">
-// request the config data
-var configReq = new XMLHttpRequest();
-configReq.open("GET", '/config.json', true);
-configReq.responseType = 'json';
-configReq.onload = function(evt) {
-  squidwork.config = evt.target.response;
-  console.log("API:         `squidwork`", squidwork);
-  console.log("Create APIs: `SquidworkConnection`", SquidworkConnection);
-  console.log("Config:      `squidwork.config`", squidwork.config);
-  console.log("JSON event:", evt);
+// test things by doing them
+window.most_specific = squidwork.subscribe('tcp://127.0.0.1:5656', 'beep/sender',
+function(msg){
+  console.log("most specific got from", msg.original_origin);
+});
+
+window.general = squidwork.subscribe('tcp://127.0.0.1:5656', '',
+function(msg){
+  console.log("general got from", msg.original_origin);
+});
+
+window.specific = squidwork.subscribe('tcp://127.0.0.1:5656', 'beep',
+function(msg){
+  console.log("specific got from", msg.original_origin);
+});
+
+// print out some datas about the environment
+console.log("API:         `squidwork`", squidwork);
+console.log("Create APIs: `SquidworkConnection`", SquidworkConnection);
+console.log("Config:      `squidwork.config`", squidwork.config);
+
+// i dunno, might be interesting for a logger
+squidwork.all_services = function(fn) {
+  var svcs = squidwork.config.Services;
+  for (var i=0; i<svcs.length; i++) {
+    for (var j=0; j<svcs[i].uris.length; j++) {
+    squidwork.subscribe(svcs[i].uris[j], '', fn);
+    }
+  }
 }
-configReq.send()
 </script>
 </head>
 <body>

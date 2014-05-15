@@ -5,17 +5,18 @@ set up our websocket connections
 import tornado.web
 import coffeescript
 import json
+import re
 
 def pretty_json(data, **kwargs):
     """
     pretty-stringify data to JSON string,
     with nice indenting and seperators
     """
-    defaults = dict(seperators=(',', ': '),
-            indent=4,
+    defaults = dict(separators=(',', ': '),
+            indent=2,
             sort_keys=True)
     defaults.update(kwargs)
-    return json.dumps(data, **kwargs)
+    return json.dumps(data, **defaults)
 
 
 class CoffeescriptHandler(tornado.web.RequestHandler):
@@ -24,9 +25,10 @@ class CoffeescriptHandler(tornado.web.RequestHandler):
     javascript with a pre-created connection to the given
     socket uri location
     """
-    def initialize(self, source, socket_name):
+    def initialize(self, source, socket_name, debug=False):
         self.source = source
         self.socket_name = socket_name
+        self.debug = debug
 
     def set_default_headers(self):
         self.set_header('Content-Type', 'text/javascript; charset=UTF-8')
@@ -40,7 +42,8 @@ class CoffeescriptHandler(tornado.web.RequestHandler):
     def get(self):
         self.write('/* rendering template ... */\n')
         cs = self.render_string(self.source,
-                WEBSOCKET_URI=self.socket_uri)
+                WEBSOCKET_URI=self.socket_uri,
+                DEBUG=self.debug)
         self.write('/* compiling coffeescript ... */\n')
         js = coffeescript.compile(cs)
         self.write(js)
@@ -51,6 +54,10 @@ class CoffeescriptHandler(tornado.web.RequestHandler):
 class JSONHandler(tornado.web.RequestHandler):
     """
     Serves the data provided at initialization as JSON
+
+    if you GET this with a parameter of ?var=valid.js.variable,
+    then instead of plain JSON you will recieve a text/javascript setting
+    valid.js.varibale = <the json>
     """
     def initialize(self, data, encoder=json.JSONEncoder):
         self.encoder = encoder
@@ -63,6 +70,16 @@ class JSONHandler(tornado.web.RequestHandler):
         return pretty_json(self.data, cls=self.encoder)
 
     def get(self):
+        # support echoing into a variable
+        variable = self.get_argument('var', False)
+        if variable:
+            self.set_header('Content-Type', 'text/javascript; charset=UTF-8')
+            safe = re.compile(r"^[\w|\d|\.]+$").match(variable)
+            if not safe:
+                # it's your funeral
+                self.write('alert("unsafe variable name")')
+                return
+            self.write(variable + ' = ')
         self.write(self.data_as_json())
 
 
