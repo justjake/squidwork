@@ -6,12 +6,15 @@ from pprint import pprint as pp
 
 from .service import import_data
 
-def create_argparser():
+def create_argparser(**kwargs):
     """
     An option parser with the config option
     """
-    parser = argparse.ArgumentParser(
+    opts = dict(
             description="ZeroMQ service with yaml configuration file")
+    opts.update(kwargs)
+
+    parser = argparse.ArgumentParser(**opts)
     parser.add_argument('-c', '--config', metavar='PATH', required=True,
             help='YAML file with service definitions, supports http')
     return parser
