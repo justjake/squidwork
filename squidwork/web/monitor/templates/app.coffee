@@ -130,14 +130,24 @@ class MainController
         types[origin].content, origin, types[origin].time)
 
     @cache = new MessageCache(LIMIT, latest, my_types)
-    # TODO: subscribe to all services
+
+    # collect all unique endpoints from the services list
+    uris = {}
+    for svc in config.Services
+      for uri in svc.uris
+        uris[uri] = true
+
+    # subscribe to all ('' matches everything)
+    for uri of uris
+      squidwork.subscribe(uri, '', @recieve_message)
+
 
   recieve_message: (msg) =>
     # will be used as a squidwork subscription callback
     @cache.insert(msg)
     m.redraw()
 
-  latest: () -> @cache.cache
+  latest: () -> @cache.cache.sort((a, b) -> b.time - a.time)
   by_origin: () ->
     """
     gets the unique items, sorts them by time, limits them to 15,
