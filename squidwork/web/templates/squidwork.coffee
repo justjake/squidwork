@@ -167,7 +167,7 @@ class Squidwork
 # we use these template values to pre-construct a squidwork instance
 # with the correct websocket values
 ###
-WEBSOCKET_URI = '{{ WEBSOCKET_URI }}'
-DEBUG = '{{ DEBUG }}' == 'True'
+WEBSOCKET_URI = '{{ socket_uri }}'
+DEBUG = '{{ debug }}' == 'True'
 window.squidwork = new Squidwork(WEBSOCKET_URI, DEBUG)
 window.SquidworkConnection = Squidwork

@@ -30,18 +30,18 @@ console.log("Config:      `squidwork.config`", squidwork.config);
 
 // i dunno, might be interesting for a logger
 squidwork.all_services = function(fn) {
-  var svcs = squidwork.config.Services;
-  for (var i=0; i<svcs.length; i++) {
-    for (var j=0; j<svcs[i].uris.length; j++) {
-    squidwork.subscribe(svcs[i].uris[j], '', fn);
+    var svcs = squidwork.config.Services;
+    for (var i=0; i<svcs.length; i++) {
+        for (var j=0; j<svcs[i].uris.length; j++) {
+            squidwork.subscribe(svcs[i].uris[j], '', fn);
+        }
     }
-  }
 }
 </script>
 </head>
 <body>
 <h1>
-  open your developer console to get started
+    open your developer console to get started
 </h1>
 </body>
 </html>
