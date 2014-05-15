@@ -86,7 +86,7 @@ while True:
     print message.content
 ```
 
-## module `squidwork.websocket`
+## module `squidwork.web`
 
 This module provides an implementation of the protocol over Websockets
 for Javascript clients. I'm only planning on implementing subscribing 
@@ -97,18 +97,22 @@ features, no publishing. Here's a somple example:
 ```
 ```coffeescript
 # squidwork imported into `window` namespace already
-endpoint = squidwork.reciever 'tcp://192.168.0.1:9999', 'ear/active', (message) ->
+sub = squidwork.subscribe 'tcp://192.168.0.1:9999', 'ear/active', (message) ->
     document.body.innerHTML = message.content
 
-# ... things happen ..
-endpoint.close()
+# re-assign sub.fn to change the handler
+sub.fn = (message) ->
+    console.log("Got message: ", message)
+
+# we don't care anymore
+sub.unsubscribe()
 ```
 
 This is implemented on top of the Tornado event loop in python and ZeroMQ
 streams. To run the bridge, execute the following:
 
 ```shell
-python -m squidwork.websocket -c ./config.yml
+python -m squidwork.web -c ./config.yml
 ```
 
 If you direct your browser to `http://localhost:8888` you will see a mostly-blank
