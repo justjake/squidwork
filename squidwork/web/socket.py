@@ -10,8 +10,8 @@ from squidwork.web.handlers import pretty_json
 
 ACTION = 'action'
 TARGET = 'target'
-SUB =    'SUB'
-UNSUB =  'UNSUB'
+SUB    = 'SUB'
+UNSUB  = 'UNSUB'
 
 
 class BridgeWebSocket(websocket.WebSocketHandler):
@@ -60,7 +60,7 @@ class BridgeWebSocket(websocket.WebSocketHandler):
             return self.unsub(*data[TARGET])
 
         self.write_message(
-                {'error': 'unknow action "{}"'.format(data[ACTION])})
+            {'error': 'unknow action "{}"'.format(data[ACTION])})
 
     def write_squidwork(self, message):
         """
@@ -93,8 +93,7 @@ class BridgeWebSocket(websocket.WebSocketHandler):
         # subscriber callback for any message we send over the wire
         if ident in self.recievers or self.any_has_prefix(ident, idents):
             # already subscribed
-            self.write_message(
-                    {'success': 'already subscribed'})
+            self.write_message({'success': 'already subscribed'})
             return
 
         # create a new reciever and a callback for it
@@ -102,8 +101,7 @@ class BridgeWebSocket(websocket.WebSocketHandler):
         self.recievers[ident] = rcvr
         rcvr.on_recieve(self.write_squidwork)
 
-        self.write_message(
-                {'success': 'subscribed'})
+        self.write_message({'success': 'subscribed'})
 
     def unsub(self, uri, prefix=''):
         """
@@ -113,11 +111,10 @@ class BridgeWebSocket(websocket.WebSocketHandler):
 
         if ident not in self.recievers:
             return self.write_message(
-                    {'error': 'not subscribed to URI "{}"'.format(uri)})
+                {'error': 'not subscribed to URI "{}"'.format(uri)})
 
         rcvr = self.recievers[uri]
         rcvr.close()
         del self.recievers[uri]
 
-        self.write_message(
-                {'success': 'unsubscribed'})
+        self.write_message({'success': 'unsubscribed'})
