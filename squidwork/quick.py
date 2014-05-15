@@ -6,11 +6,6 @@ the quick package makes writing trivial ZeroMQ pubsub scripts
 trivial
 """
 
-print("-- using squidwork quick, create no other contexts --")
-"""
-just a default context, nothing to see here
-"""
-
 context = zmq.Context.instance()
 
 def pub(*uris):
