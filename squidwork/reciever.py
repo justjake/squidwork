@@ -32,7 +32,7 @@ class Reciever(object):
         parts = self.socket.recv_multipart()
         return self.parse_zeromq_parts(parts)
 
-    def parse_zeromq_parts(self, data):
+    def parse_zeromq_parts(self, parts):
         """
         parse a multipart ZeroMQ packet into a squidwork message
         """
