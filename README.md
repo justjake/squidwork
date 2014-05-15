@@ -119,6 +119,44 @@ If you direct your browser to `http://localhost:8888` you will see a mostly-blan
 page that directs you to open your eveloper console. From there you can inspect
 the configuration data and create new subscriptions!
 
+## module `squidwork.web.monitor`
+
+At this point, we've got a full blown web micro-library going on in 
+`squidwork.web.handlers`, and a pretty great Javascript squidwork API, so why
+not make a real front-end app of equal quality?
+
+The **monitor** is a graphical log of recent squidwork messages.
+depending on configuration, it displays a list of the last N squidwork events.
+It can filter for uniqueness (squashing a bunch of duplicates), or just display
+things chronologically.
+
+monitor requires several extra packages to support its beautiy:
+    - pyScss to render stylesheets
+
+I feel like I might be pioneering strange application architectures at this
+point. Here's what we've got so far:
+
+- ZeroMQ pub-sub data source
+- data becomes JSON
+  - some is stream over WebSockets to front-end
+  - some is plain-jain JSON
+- tornado webserver to deliver templates and websockets
+  - templates mostly static, only dynamic so we can ship over config values
+  - *only 4 lines of HTML*
+- coffeescript front-end app consumer
+- views rendered on the client by [Mithril.js][mithril]
+
+I can't tell if Mithril.js is awesome or what. Look at the 
+[occlusion culling][oc] bit the creator does: we've got a full data binding
+application (or at least view-controller) in 43 lines. So refreshing compared
+to Ember.js.
+
+[mithril]: http://lhorie.github.io/mithril/index.html
+[oc]: http://lhorie.github.io/mithril-blog/an-exercise-in-awesomeness.html#occlusion-culling
+
+The worst part is that I can't tell if what's genius, or Don Music.
+(That was a Sesame Street reference).
+
 ## Service definitions
 
 squidwork also provides a main-entrypoint framework for loading
