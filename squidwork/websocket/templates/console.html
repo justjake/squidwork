@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+<title>
+  squidwork - console
+</title>
+<script src="/squidwork.js" type="text/javascript"></script>
+<script type="text/javascript">
+// request the config data
+var configReq = new XMLHttpRequest();
+configReq.open("GET", '/config.json', true);
+configReq.responseType = 'json';
+configReq.onload = function(evt) {
+  squidwork.config = evt.target.response;
+  console.log("API:         `squidwork`", squidwork);
+  console.log("Create APIs: `SquidworkConnection`", SquidworkConnection);
+  console.log("Config:      `squidwork.config`", squidwork.config);
+  console.log("JSON event:", evt);
+}
+configReq.send()
+</script>
+</head>
+<body>
+<h1>
+  open your developer console to get started
+</h1>
+</body>
+</html>

@@ -1,14 +1,20 @@
 from tornado import websocket
-from zmq import ZMQStream
+from zmq.eventloop.zmqstream import ZMQStream
 import json
 
 from squidwork import Reciever
 from squidwork.sender import MessageEncoder
+from squidwork.quick import sub
+
+from squidwork.websocket.web import pretty_json
+
+import zmq.eventloop.ioloop
+zmq.eventloop.ioloop.install()
 
 class AsyncReciever(Reciever):
 
     def __init__(self, socket, origin=''):
-        super(type(self), self).__init(socket, origin)
+        super(type(self), self).__init__(socket, origin)
         self.stream = ZMQStream(self.socket)
 
     def on_recieve(self, callback):
@@ -40,6 +46,7 @@ ACTION = 'action'
 TARGET = 'target'
 SUB =    'SUB'
 UNSUB =  'UNSUB'
+
 
 class SquidworkWebSocket(websocket.WebSocketHandler):
     """
@@ -93,7 +100,7 @@ class SquidworkWebSocket(websocket.WebSocketHandler):
         """
         Write a squidwork message to the wire as JSON
         """
-        data = json.dumps(message, cls=self.encoder)
+        data = pretty_json(message, cls=MessageEncoder)
         self.write_message(data)
 
     def ident(self, uri, prefix):
@@ -115,6 +122,9 @@ class SquidworkWebSocket(websocket.WebSocketHandler):
         self.recievers[ident] = rcvr
         rcvr.on_recieve(self.write_squidwork)
 
+        self.write_message(
+                {'success': 'subscribed'})
+
     def unsub(self, uri, prefix=''):
         """
         unsubscribe from the given prefix on the URI
@@ -128,3 +138,6 @@ class SquidworkWebSocket(websocket.WebSocketHandler):
         rcvr = self.recievers[uri]
         rcvr.close()
         del self.recievers[uri]
+
+        self.write_message(
+                {'success': 'unsubscribed'})
