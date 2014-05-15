@@ -16,7 +16,8 @@ setup(name='squidwork',
         install_requires=[
           "pyzmq",
           "pyyaml",
-          "tornado",      # for websocket
-          "CoffeeScript"  # for websocket
+          "tornado",       # for websocket
+          "CoffeeScript",  # for websocket
+          "pyScss"
           ]
         )

@@ -27,9 +27,9 @@ class TemplateRenderer(tornado.web.RequestHandler):
     args callable, in which case the template will recieve the result of
     applying the callable to the TemplateRenderer instance
     """
-    def initialize(self, source, **template_args):
+    def initialize(self, source, **args):
         self.source = source
-        self.template_args = template_args
+        self.args = args
 
     def reverse_absolute(self, name, protocol=None):
         """
@@ -49,17 +49,18 @@ class TemplateRenderer(tornado.web.RequestHandler):
         """
         run any callables in the template args on ourself
         """
-        return {k: self.expand_callable(v) for k, v in args.iteritems()}
+        val = {k: self.expand_callable(v) for k, v in args.iteritems()}
+        return val
 
-    def template_string(self, args=None):
+    def template_string(self, args):
         """
         render our template source to a string
         """
-        args = self.process_args(args or self.template_args)
+        args = self.process_args(args)
         return self.render_string(self.source, **args)
 
     def get(self):
-        self.write(self.template_string(**self.template_args))
+        self.write(self.template_string(self.args))
 
 
 class CoffeescriptHandler(TemplateRenderer):
@@ -75,7 +76,7 @@ class CoffeescriptHandler(TemplateRenderer):
     def get(self):
         self.write('/* rendering template ... */\n')
         # render template into coffeescript
-        cs = self.template_string()
+        cs = self.template_string(self.args)
 
         # then compile to javascript
         self.write('/* compiling coffeescript ... */\n')
@@ -99,8 +100,6 @@ class JSONHandler(tornado.web.RequestHandler):
     then instead of plain JSON you will recieve a text/javascript setting
     valid.js.varibale = <the json>
     """
-    function = type(lambda x: x)
-
     def initialize(self, data, encoder=json.JSONEncoder):
         self.encoder = encoder
         self._data = data

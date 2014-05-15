@@ -23,16 +23,21 @@ Nice: The worst part is that I can't tell if I'm a genius, or Don Music.
 (That was a Sesame Street reference).
 """
 
+import os
+from random import choice
 import tornado.web
 import tornado.ioloop
 import scss
 Scss = scss.Scss()
 
 import squidwork.web.config as config
+from squidwork.sender import MessageEncoder
+from squidwork import Message
 from squidwork.quick import sub
 from squidwork.async import AsyncReciever
-from squidwork.web import (
-    handlers, JSONHandler, CoffeescriptHandler,
+from squidwork.web import handlers
+from squidwork.web.handlers import (
+    JSONHandler, CoffeescriptHandler,
     TemplateRenderer)
 
 
@@ -99,12 +104,41 @@ class ScssHandler(TemplateRenderer):
         self.write(Scss.compile(source))
 
 
+def dummy_message():
+    """
+    generates a single dummy squidwork message
+    """
+    origins = """
+    all/messages/recieved@mail.example.com
+    all/messages/failed@mx.google.example.com
+    all/alarm@critical.internal
+    all/alert@critical.internal
+    all/ear/passive@raspi.interna;
+    """.split()
+
+    contents = [
+        dict(item='souls', quantity=1000),
+        dict(line='alas poor yorik', gratitude=-23),
+        dict(insult='ill bash yer fukin head in swear on me mum',
+             severity=None,
+             british=True)
+        ]
+
+    return Message(choice(contents), origin=choice(origins))
+
+
 def main():
-    parser = config.create_argparser()
-    parser.add_argument('n', '--num', help='number of elements to store',
+    settings = dict(debug=True,
+        template_path=os.path.dirname(os.path.realpath(__file__)))
+
+
+
+
+    parser = config.create_argparser(prog='squidwork.web.monitor')
+    parser.add_argument('-n', '--num', help='number of elements to store',
                         default=15)
     options = parser.parse_args()
-    settings = config.get_config(options.config)
+    full_config = config.get_config(options.config)
     services = config.get_services(options)
     port = config.get_port(options)
 
@@ -116,16 +150,21 @@ def main():
         recvr.on_recieve(cache.add)
         recievers.append(recvr)
 
-    app = tornado.web.Application(
-        handlers() + [
-            (r"/", TemplateRenderer, dict(source='templates/index.html')),
-            (r"/latest.json", JSONHandler, dict(data=lambda:
-                                                {'latest': cache.cache,
-                                                 'types': cache.by_origin}))
-            (r"/app.js", CoffeescriptHandler,
-                dict(source='templates/app.coffee'))
-        ],
-        debug=True, **settings
-        )
+    # generate some dummy data
+    dummy = [dummy_message() for i in range(0, 20)]
+    cache.add(*dummy)
 
+    app = tornado.web.Application(
+        handlers(full_config, **settings) + [
+            (r"/", TemplateRenderer, dict(source='templates/index.html')),
+            (r"/data.json", JSONHandler, dict(encoder=MessageEncoder,
+                                              data=lambda:
+                                                {'latest': cache.cache,
+                                                 'types': cache.by_origin})),
+            (r"/app.js", CoffeescriptHandler,
+                dict(source='templates/app.coffee', count=options.num))
+        ],
+        **settings
+        )
     app.listen(port)
+    tornado.ioloop.IOLoop.instance().start()
