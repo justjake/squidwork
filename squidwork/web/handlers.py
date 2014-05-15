@@ -20,41 +20,68 @@ def pretty_json(data, **kwargs):
     return json.dumps(data, **defaults)
 
 
-class CoffeescriptHandler(tornado.web.RequestHandler):
+class TemplateRenderer(tornado.web.RequestHandler):
     """
-    serves the squidwork.coffee library file as compiled
-    javascript with a pre-created connection to the given
-    socket uri location
+    render a template with the args given at app creation.
+    sneaky dynamic behavior can be provided by making any of the template
+    args callable, in which case the template will recieve the result of
+    applying the callable to the TemplateRenderer instance
     """
-    def initialize(self, source, **kwargs):
+    def initialize(self, source, **template_args):
         self.source = source
-        self.template_args = kwargs
+        self.template_args = template_args
 
-    def set_default_headers(self):
-        self.set_header('Content-Type', 'text/javascript; charset=UTF-8')
+    def reverse_absolute(self, name, protocol=None):
+        """
+        similar to reverse_url, but provides an absolute path
+        """
+        return "{protocol}://{host}{path}".format(
+            protocol=(protocol or self.request.protocol),
+            host=self.request.host,
+            path=self.reverse_url(name))
 
     def expand_callable(self, val):
         if callable(val):
             return val(self)
         return val
 
-    @property
-    def socket_uri(self):
-        url = self.reverse_url(self.socket_name)
-        return 'ws://{host}'.format(host=self.request.host) + url
+    def process_args(self, args):
+        """
+        run any callables in the template args on ourself
+        """
+        return {k: self.expand_callable(v) for k, v in args.iteritems()}
+
+    def template_string(self, args=None):
+        """
+        render our template source to a string
+        """
+        args = self.process_args(args or self.template_args)
+        return self.render_string(self.source, **args)
+
+    def get(self):
+        self.write(self.template_string(**self.template_args))
+
+
+class CoffeescriptHandler(TemplateRenderer):
+    """
+    serves the squidwork.coffee library file as compiled
+    javascript with a pre-created connection to the given
+    socket uri location
+    """
+    def set_default_headers(self):
+        self.set_header('Content-Type', 'text/javascript; charset=UTF-8')
 
     @tornado.web.asynchronous
     def get(self):
         self.write('/* rendering template ... */\n')
-        # first coffeescript is transformed as a Tornado template
-        # expand callable params where possible by invokign them on self
-        args = {k: self.expand_callable(v)
-                for k, v in self.template_args.iteritems()}
-        cs = self.render_string(self.source, **args)
+        # render template into coffeescript
+        cs = self.template_string()
 
-        # then it is rendered to javascript
+        # then compile to javascript
         self.write('/* compiling coffeescript ... */\n')
         js = coffeescript.compile(cs)
+
+        # and we're done!
         self.write(js)
         self.write('/* finished! */\n')
         self.finish()

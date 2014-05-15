@@ -25,7 +25,7 @@ def handlers(config, **settings):
     return [
         (r"/squidwork.js", CoffeescriptHandler,
             dict(source='templates/squidwork.coffee',
-                 socket_uri=lambda self: self.reverse_url('websocket'),
+                 socket_uri=lambda self: self.reverse_absolute('websocket', protocol='ws'),
                  debug=settings['debug'])),
         (r"/connect.ws", BridgeWebSocket, None, 'websocket'),
         (r"/config.json", JSONHandler, dict(data=config)),
