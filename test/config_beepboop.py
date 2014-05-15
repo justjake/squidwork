@@ -1,11 +1,11 @@
 from __future__ import print_function
 from squidwork import Sender
-from squidwork.config import get_services, Service
+from squidwork.config import create_argparser, get_services, Service
 from squidwork.quick import pub
 from pprint import pprint as pp
 from time import sleep
 
-services = get_services()
+services = get_services(create_argparser().parse_args())
 
 our_names = 'beep', 'boop'
 senders = {}
@@ -26,4 +26,4 @@ while True:
     for name in our_names:
         sleep(3)
         pp("Sending " + name)
-        senders[name].send(name)
+        senders[name].send([name])
