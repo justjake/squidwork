@@ -1,46 +1,13 @@
 from tornado import websocket
-from zmq.eventloop.zmqstream import ZMQStream
 import json
 
-from squidwork import Reciever
 from squidwork.sender import MessageEncoder
 from squidwork.quick import sub
+from squidwork.async import AsyncReciever
 
 from squidwork.websocket.web import pretty_json
 
-import zmq.eventloop.ioloop
-zmq.eventloop.ioloop.install()
 
-class AsyncReciever(Reciever):
-
-    def __init__(self, socket, origin=''):
-        super(type(self), self).__init__(socket, origin)
-        self.stream = ZMQStream(self.socket)
-
-    def on_recieve(self, callback):
-        """
-        Sets `callback` to be run whenever this receiver gets a
-        message. the callback is a runnable that takes one 
-        parameter: a message
-
-        You may set callback to None to pause message handling.
-        """
-
-        def zmq_cb(multipart):
-            message = self.parse_zeromq_parts(multipart)
-            return callback(message)
-
-        if callback is None:
-            zmq_cb = None
-
-        self.stream.on_recv(zmq_cb)
-
-    def close(self):
-        """
-        close the ZeroMQ socket stream
-        """
-        self.on_recieve(None)
-        return self.stream.close()
 
 ACTION = 'action'
 TARGET = 'target'
