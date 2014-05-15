@@ -106,15 +106,29 @@ class SquidworkWebSocket(websocket.WebSocketHandler):
     def ident(self, uri, prefix):
         return uri + '/' + prefix
 
+    def any_has_prefix(self, prefix, things):
+        for thing in things:
+            if thing.startswith(prefix):
+                return True
+
+        return False
+
     def sub(self, uri, prefix=''):
         """
         subscribe the web client to this socket
         """
 
         ident = self.ident(uri, prefix)
+        idents = self.recievers.iterkeys()
 
-        if ident in self.recievers:
+        # we don't need to actually create more filtered sockets if we
+        # already have a general one on the books.
+        # the javascript end will handle choosing the most specific
+        # subscriber callback for any message we send over the wire
+        if ident in self.recievers or self.any_has_prefix(ident, idents):
             # already subscribed
+            self.write_message(
+                    {'success': 'already subscribed'})
             return
 
         # create a new reciever and a callback for it
