@@ -14,6 +14,17 @@ class Origin
   toString: () ->
     "all/#{@path}@#{@host}"
 
+class Message
+  constructor: (@content, @origin, @time) ->
+    if typeof(@origin) is 'string'
+      @origin = new Origin(@origin)
+
+    if typeof(@time) is 'string'
+      @time = @parse_time(@time)
+
+  parse_time: (str) ->
+    [iso, psec] = str.split('.')
+    return new Date(iso)
 
 class Subscription
   constructor: (@parent, @path, @fn) ->
@@ -88,9 +99,6 @@ class Squidwork
     @socket.onmessage = @recieve_message
     @socket.onopen = @_unbuffer
 
-  parse_time: (str) ->
-    [iso, psec] = str.split('.')
-    return new Date(iso)
 
   recieve_message: (event) =>
     """
@@ -115,13 +123,9 @@ class Squidwork
       console.log("SQUIDWORK: success:", data.success)
       return
 
+    # parse fields into javascript types
+    data = new Message(data.content, data.origin, data.time)
     @latest_message = data
-
-    # prase fields into javascript types
-    data.original_origin = data.origin
-    data.original_time = data.time
-    data.origin = new Origin(data.origin)
-    data.time = @parse_time(data.time)
 
     handler = @handlers.for(data.origin.path)
     if handler?
@@ -169,5 +173,6 @@ class Squidwork
 ###
 WEBSOCKET_URI = '{{ socket_uri }}'
 DEBUG = '{{ debug }}' == 'True'
-window.squidwork = new Squidwork(WEBSOCKET_URI, DEBUG)
-window.SquidworkConnection = Squidwork
+squidwork = window.squidwork = new Squidwork(WEBSOCKET_URI, DEBUG)
+squidwork.Connection = Squidwork
+squidwork.Message = Message
