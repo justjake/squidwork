@@ -22,6 +22,10 @@ LIMIT = parseInt('{{ count }}', 10)
 AppView = (ctrl) ->
   window.controller = ctrl
   m 'html', [
+    m('head', [
+      m('title', 'squidwork.web.monitor'),
+      m('link[rel=stylesheet][href=/style.css]')
+    ]),
     m 'body', [
       SideView('Latest Events', ctrl.latest()),
       SideView('By Origin', ctrl.by_origin())
@@ -31,8 +35,8 @@ AppView = (ctrl) ->
 SideView = (heading, msgs) ->
   m 'section.side', [
     m('h2', heading),
-    m 'ul.message-list', msgs.map (msg) ->
-      m '.message', {class: msg.origin.toString()}, [
+    m 'ol.message-list', msgs.map (msg) ->
+      m 'li.message', {class: msg.origin.toString()}, [
         m('.info', [
           m('span.origin', msg.origin.toString()),
           m('span.time', msg.time.toString())
@@ -47,20 +51,36 @@ render_json = (data) ->
   # applied. Should be placed in a `whitespace: pre` context
   if typeof(data) isnt 'string'
     data = JSON.stringify(data, undefined, 2)
-  parser = /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g
+
+  # these regexes are ORed together to form the JSON tokenizer
+  unicode =     /"(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?/
+  keyword =     /\b(true|false|null)\b/
+  whitespace =  /\s+/
+  punctuation = /[,.}{\[\]]/
+  number =      /-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/
+
+  # combine by | or-ing
+  syntax = '(' + [unicode, keyword, whitespace,
+            punctuation, number].map((r) -> r.source).join('|') + ')'
+  parser = new RegExp(syntax, 'g')
+
   nodes = data.match(parser) ? []
   select_class = (node) ->
-      if /^"/.test(node)
-        if /:$/.test(node)
-          return 'key'
-        return 'string'
+    if punctuation.test(node)
+      return 'punctuation'
+    if /^\s+$/.test(node)
+      return 'whitespace'
+    if /^"/.test(node)
+      if /:$/.test(node)
+        return 'key'
+      return 'string'
 
-      if /true|false/.test(node)
-        return 'boolean'
+    if /true|false/.test(node)
+      return 'boolean'
 
-       if /null/.test(node)
-         return 'null'
-       return 'number'
+     if /null/.test(node)
+       return 'null'
+     return 'number'
   return nodes.map (node) ->
     cls = select_class(node)
     return m('span', {class: cls}, node)
@@ -99,11 +119,18 @@ class MainController
   application controller. created on page load.
   """
   constructor: () ->
-    @cache = new MessageCache(
-      LIMIT,
-      window.initial_state.latest,
-      window.initial_state.types)
-      # todo: subscribe to all services
+    # vivify JSON into Message objects
+    latest = window.initial_state.latest.map (m) ->
+      new squidwork.Message(m.content, m.origin, m.time)
+
+    my_types = {}
+    types = window.initial_state.types
+    for origin of types
+      my_types[origin] = new squidwork.Message(
+        types[origin].content, origin, types[origin].time)
+
+    @cache = new MessageCache(LIMIT, latest, my_types)
+    # TODO: subscribe to all services
 
   recieve_message: (msg) =>
     # will be used as a squidwork subscription callback
@@ -115,10 +142,15 @@ class MainController
     """
     gets the unique items, sorts them by time, limits them to 15,
     and then sorts them by name
-
-    TODO: implement
     """
-    return []
+    msgs = []
+    for origin of @cache.by_origin
+      msgs.push(@cache.by_origin[origin])
+    msgs = msgs.sort((a, b) -> b.time - a.time)
+    # get the latest items
+    msgs = msgs[-LIMIT..]
+    # re-sort by origin
+    return msgs.sort((a, b) -> (a.origin.toString() > b.origin.toString()))
 
 ###############################################################################
 #                               ENTRY POINT                                   #

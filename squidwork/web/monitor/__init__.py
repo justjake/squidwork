@@ -100,7 +100,7 @@ class ScssHandler(TemplateRenderer):
         self.set_header('Content-Type', 'text/css; charset=UTF-8')
 
     def get(self):
-        source = self.template_string()
+        source = self.template_string(self.args)
         self.write(Scss.compile(source))
 
 
@@ -113,7 +113,7 @@ def dummy_message():
     all/messages/failed@mx.google.example.com
     all/alarm@critical.internal
     all/alert@critical.internal
-    all/ear/passive@raspi.interna;
+    all/ear/passive@raspi.internal
     """.split()
 
     contents = [
@@ -162,7 +162,8 @@ def main():
                                                 {'latest': cache.cache,
                                                  'types': cache.by_origin})),
             (r"/app.js", CoffeescriptHandler,
-                dict(source='templates/app.coffee', count=options.num))
+                dict(source='templates/app.coffee', count=options.num)),
+            (r"/style.css", ScssHandler, dict(source='templates/style.scss')),
         ],
         **settings
         )

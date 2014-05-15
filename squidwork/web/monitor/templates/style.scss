@@ -2,11 +2,23 @@
  * lovely scss
  */
 
-.message {
-  .info .span {
-    display: block
-  }
-  .data {
-    white-space: pre;
-  }
+html {
+  font-family: sans-serif;
+}
+
+.info span {
+  display: block;
+}
+
+.message .data {
+  white-space: pre;
+}
+
+.data {
+  /* syntax highlighting */
+  .string { color: green; }
+  .number { color: darkorange; }
+  .boolean { color: blue; }
+  .null { color: magenta; }
+  .key { color: red; }
 }
