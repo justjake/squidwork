@@ -35,7 +35,7 @@ from squidwork.sender import MessageEncoder
 from squidwork import Message
 from squidwork.quick import sub
 from squidwork.async import AsyncReciever
-from squidwork.web import handlers
+from squidwork.web import handlers as api_handlers
 from squidwork.web.handlers import (
     JSONHandler, CoffeescriptHandler,
     TemplateRenderer)
@@ -124,48 +124,68 @@ def dummy_message():
              british=True)
         ]
 
-    return Message(choice(contents), origin=choice(origins))
+    body = choice(contents).copy()
+    body.update(dict(dummy=True))
+
+    return Message(body, origin=choice(origins))
 
 
 def main():
+    """
+    run the app!
+    currently very hairy. starts with dummy data
+    """
     settings = dict(debug=True,
-        template_path=os.path.dirname(os.path.realpath(__file__)))
-
-
-
+                    template_path=os.path.dirname(os.path.realpath(__file__)))
 
     parser = config.create_argparser(prog='squidwork.web.monitor')
     parser.add_argument('-n', '--num', help='number of elements to store',
                         default=15)
-    options = parser.parse_args()
-    full_config = config.get_config(options.config)
-    services = config.get_services(options)
-    port = config.get_port(options)
+
+    options = parser.parse_args()  # command line optionsj
+    full_config = config.get_config(options.config)  # YAML load of conf file
+    services = config.get_services(options)  # list of services in conf file
+    port = config.get_port(options)  # port
 
     # the message buffer stores the last N mesages
     cache = MessageCache(options.num)
-    recievers = []
-    for svc in services:
-        recvr = AsyncReciever(sub(*svc.URIs), svc.prefix)
-        recvr.on_recieve(cache.add)
-        recievers.append(recvr)
 
-    # generate some dummy data
+    # subscribe to all services!
+    uris = set()
+    for svc in services:
+        uris = uris.union(svc.URIs)
+    recvr = AsyncReciever(sub(*uris))
+    recvr.on_recieve(cache.add)
+
+    # generate some dummy data to pre-populate the cache with
     dummy = [dummy_message() for i in range(0, 20)]
     cache.add(*dummy)
 
-    app = tornado.web.Application(
-        handlers(full_config, **settings) + [
-            (r"/", TemplateRenderer, dict(source='templates/index.html')),
-            (r"/data.json", JSONHandler, dict(encoder=MessageEncoder,
-                                              data=lambda:
-                                                {'latest': cache.cache,
-                                                 'types': cache.by_origin})),
-            (r"/app.js", CoffeescriptHandler,
-                dict(source='templates/app.coffee', count=options.num)),
-            (r"/style.css", ScssHandler, dict(source='templates/style.scss')),
-        ],
-        **settings
-        )
-    app.listen(port)
-    tornado.ioloop.IOLoop.instance().start()
+    # we include the api_handlers from squidwork.web so we can use the
+    # squidwork web<--WebSocket-->ZeroMq bridge
+    all_handlers = api_handlers(full_config, **settings) + [
+
+        # the index page is totally static -- all it does is request javascript
+        (r"/", TemplateRenderer, dict(source='templates/index.html')),
+
+        # JSON view of whatever is currently in our cache. this is how the
+        # app gets its initial data on page load
+        (r"/data.json", JSONHandler, dict(encoder=MessageEncoder, data=(
+            lambda: {'latest': cache.cache, 'types': cache.by_origin}))),
+
+        # big coffeescript app written with Mithril.js. All HTML structure on
+        # the page is produced by view functions in app.coffee
+        (r"/app.js", CoffeescriptHandler,
+            dict(source='templates/app.coffee', count=options.num)),
+
+        # static, plain-jane scss
+        (r"/style.css", ScssHandler, dict(source='templates/style.scss')),
+    ]
+
+    # spin up the app!
+    app = tornado.web.Application(all_handlers, **settings)
+    try:
+        app.listen(port)
+        tornado.ioloop.IOLoop.instance().start()
+    except KeyboardInterrupt:
+        print ' keyboard interrupt: exiting.'
