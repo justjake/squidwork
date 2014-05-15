@@ -7,14 +7,15 @@ import coffeescript
 import json
 import re
 
+
 def pretty_json(data, **kwargs):
     """
     pretty-stringify data to JSON string,
     with nice indenting and seperators
     """
     defaults = dict(separators=(',', ': '),
-            indent=2,
-            sort_keys=True)
+                    indent=2,
+                    sort_keys=True)
     defaults.update(kwargs)
     return json.dumps(data, **defaults)
 
@@ -25,13 +26,17 @@ class CoffeescriptHandler(tornado.web.RequestHandler):
     javascript with a pre-created connection to the given
     socket uri location
     """
-    def initialize(self, source, socket_name, debug=False):
+    def initialize(self, source, **kwargs):
         self.source = source
-        self.socket_name = socket_name
-        self.debug = debug
+        self.template_args = kwargs
 
     def set_default_headers(self):
         self.set_header('Content-Type', 'text/javascript; charset=UTF-8')
+
+    def expand_callable(self, val):
+        if callable(val):
+            return val(self)
+        return val
 
     @property
     def socket_uri(self):
@@ -41,9 +46,13 @@ class CoffeescriptHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     def get(self):
         self.write('/* rendering template ... */\n')
-        cs = self.render_string(self.source,
-                WEBSOCKET_URI=self.socket_uri,
-                DEBUG=self.debug)
+        # first coffeescript is transformed as a Tornado template
+        # expand callable params where possible by invokign them on self
+        args = {k: self.expand_callable(v)
+                for k, v in self.template_args.iteritems()}
+        cs = self.render_string(self.source, **args)
+
+        # then it is rendered to javascript
         self.write('/* compiling coffeescript ... */\n')
         js = coffeescript.compile(cs)
         self.write(js)
@@ -53,15 +62,31 @@ class CoffeescriptHandler(tornado.web.RequestHandler):
 
 class JSONHandler(tornado.web.RequestHandler):
     """
-    Serves the data provided at initialization as JSON
+    Serves the data provided at initialization as JSON.
+
+    If you want to be tricky, you can provide a callable `data` parameter,
+    and the JSONHandler will use the result of the callable as data on each
+    request.
 
     if you GET this with a parameter of ?var=valid.js.variable,
     then instead of plain JSON you will recieve a text/javascript setting
     valid.js.varibale = <the json>
     """
+    function = type(lambda x: x)
+
     def initialize(self, data, encoder=json.JSONEncoder):
         self.encoder = encoder
-        self.data = data
+        self._data = data
+
+    @property
+    def data(self):
+        """
+        allows us to provide a zero-argument function as data, so that
+        we can have dynamic content
+        """
+        if callable(self._data):
+            return self._data()
+        return self._data
 
     def set_default_headers(self):
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
