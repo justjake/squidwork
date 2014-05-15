@@ -6,6 +6,7 @@ import tornado.web
 import coffeescript
 import json
 import re
+import os
 
 
 def pretty_json(data, **kwargs):
@@ -27,9 +28,18 @@ class TemplateRenderer(tornado.web.RequestHandler):
     args callable, in which case the template will recieve the result of
     applying the callable to the TemplateRenderer instance
     """
-    def initialize(self, source, **args):
+    def initialize(self, source, template_relative_to_class=False, **args):
         self.source = source
         self.args = args
+        self.relative_to_class = template_relative_to_class
+
+    def get_template_path(self):
+        """
+        optionally restrict to squidwork templates
+        """
+        if self.relative_to_class:
+            return os.path.dirname(os.path.realpath(__file__))
+        return super(TemplateRenderer, self).get_template_path()
 
     def reverse_absolute(self, name, protocol=None):
         """
