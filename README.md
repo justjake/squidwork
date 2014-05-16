@@ -130,9 +130,6 @@ depending on configuration, it displays a list of the last N squidwork events.
 It can filter for uniqueness (squashing a bunch of duplicates), or just display
 things chronologically.
 
-monitor requires several extra packages to support its beautiy:
-    - pyScss to render stylesheets
-
 I feel like I might be pioneering strange application architectures at this
 point. Here's what we've got so far:
 
@@ -151,11 +148,14 @@ I can't tell if Mithril.js is awesome or what. Look at the
 application (or at least view-controller) in 43 lines. So refreshing compared
 to Ember.js.
 
+I'm very satisified with my Mithril experiece. it's considerably less complex
+to use Mithril than Mustache or any other "logic-free" template system that
+then requires an aditional view layer, and it seems pretty fast. I'm just using
+it for rendering (no two-way data bindigns), but it's still very convinient.
+Hooray for immidiate-mode GUIs.
+
 [mithril]: http://lhorie.github.io/mithril/index.html
 [oc]: http://lhorie.github.io/mithril-blog/an-exercise-in-awesomeness.html#occlusion-culling
-
-The worst part is that I can't tell if what's genius, or Don Music.
-(That was a Sesame Street reference).
 
 ## Service definitions
 
