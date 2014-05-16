@@ -4,6 +4,7 @@ from .mapping import ManyToMany
 # b is URIs
 _prefix_to_uri = ManyToMany()
 
+
 class Service(object):
     """
     service API route prefix, and the ZeroMQ uri(s) to find it at.
@@ -15,8 +16,6 @@ class Service(object):
     def __init__(self, prefix, *uris):
         if len(uris) == 0:
             raise ValueError('Service must have a prefix')
-
-        print "URIs: " + str(uris)
 
         for uri in uris:
             _prefix_to_uri.assoc(prefix, uri)
@@ -40,8 +39,8 @@ class Service(object):
 
     def __repr__(self):
         return "Service({prefix}, {uri})".format(
-                uri=", ".join(list(self.URIs)), 
-                prefix=repr(self.prefix))
+            uri=", ".join(list(self.URIs)),
+            prefix=repr(self.prefix))
 
     @classmethod
     def for_exact_prefix(cls, prefix):
@@ -63,8 +62,8 @@ class Service(object):
         the given prefix, ie, for_prefix('') will match
         all Services
         """
-        return  [cls.for_exact_prefix(p) 
-                for p in _prefix_to_uri.As() 
+        return [cls.for_exact_prefix(p)
+                for p in _prefix_to_uri.As()
                 if p.startswith(prefix)]
 
     @classmethod
@@ -85,10 +84,10 @@ def import_data(data):
 
     Services
         - route: ear
-          uris:   
+          uris:
             - tcp://192.168.0.201:9000
         - route: darksouls
-          uris:   
+          uris:
             - tcp://192.168.0.205:9000
     """
     KEY = 'Services'
@@ -102,4 +101,3 @@ def import_data(data):
         raise ValueError('config data not a list: {}'.format(data))
 
     return [Service(s['prefix'], *(s['uris'])) for s in data]
-
