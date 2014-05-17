@@ -161,7 +161,7 @@ def main():
 
     # we include the api_handlers from squidwork.web so we can use the
     # squidwork web<--WebSocket-->ZeroMq bridge
-    all_handlers = api_handlers(conf.raw_config, **settings) + [
+    all_handlers = api_handlers(conf.raw_config, debug=conf.debug) + [
 
         # the index page is totally static -- all it does is request javascript
         (r"/", TemplateRenderer, dict(source='templates/index.html')),

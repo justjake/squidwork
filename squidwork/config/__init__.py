@@ -153,7 +153,8 @@ class Config(object):
 
         if ns.name not in raw['services']:
             raise ConfigError(
-                'no service definition `{}` in config file'.format(ns.name))
+                'service `{}` not among {} in config file'.format(ns.name,
+                    raw['services'].keys()))
 
         # put all defined options into loaded_opts, and then raise an exception
         # if we wanted something but it wasn't in the args or the conf

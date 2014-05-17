@@ -7,19 +7,16 @@ Puts it all together.
 """
 import tornado
 
-from squidwork.web import create_application
-from squidwork.config import get_config
-from squidwork.web.config import create_argparser, get_port
+from squidwork.web import create_application, Config
+
 
 def main():
-    parser = create_argparser(prog='python -m squidwork.websocket')
-    args = parser.parse_args()
-    port = get_port(args)
-    config_data = get_config(args.config)
+    config = Config().retrieve()
 
-    app = create_application(config=config_data, **config_data['Webapp'])
+    app = create_application(config.raw_config, debug=config.debug)
 
-    app.listen(port)
+    app.listen(config.port)
     tornado.ioloop.IOLoop.instance().start()
+
 
 main()
