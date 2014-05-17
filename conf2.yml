@@ -1,0 +1,83 @@
+# squidwork configuration file
+# ===========================
+#
+# Overview
+# --------
+# the purpose of the squidwork configuration file is to centralize information
+# both for *recievers*, who may want to look up what URIs provide what routes,
+# and for individual services to store their semi-private configuration details
+#
+# Service Discovery:
+# For example, squidwork.web.monitor and tests/logger.py are both squidwork
+# loggers. They need to find every service so they can connect and write down
+# aeverything that is being said.
+#
+# App Configuration:
+# each instance of an application may need its own specific configurations. For
+# example, if we're running a Wit.ai service publisher on both 
+# speedboat.internal and on armada.internal, we should be able to configure
+# these apps seperatley.
+#
+# when a squidwork service is started, it generally requires two parameters:
+#  <-c | --config> FILE_LOCATION | HTTP_URI -- where to load config from
+#  <-n | --name>   STRING                   -- app settings key in config
+# so to start the beeper service with the test-beep configuration, I would run
+# the following:
+#  
+#     $ python test/beeper.py -c /etc/squidwork/conf.yml -n beep-localhost
+# 
+# the -n options tells the app "my specific settings are in **that** service
+# definition
+#
+# Conf Format Versioning
+# -----------------------
+#
+# starting with `conf-version: 2`, configuration file formats are versioned.
+# squidwork currently does not check configuration versions, but this may be
+# useful in six months or so if things change
+#
+# version 0 of the conf format is a 1:1 mapping of prefix <--> URI
+# version 1 of the conf format is a 1:MANY mapping of prefix <--> URIs
+# version 2 of the conf fonrmat is a 1:1 APP-NAME:APP-CONFIG mapping, where
+#   an app config contains a routes list and a uris list wher the app may
+#   publish those routes
+conf-version: 2 
+
+# Structure
+# ---------
+#
+# services are defined under the `service` root key.
+# each different configuration for an app that you may be running on your local
+# network should have a different key.
+#
+# all app service definitions should define `uris` as a list of ZeroMQ socket
+# URIs, and `routes`, a list of message routes that they may publish.
+# Routes here may be defined as loosly or specifically as you wish. If your app
+# sends messages like `app/detected/some-type`, `app/detected/other-type`, etc,
+# you could list `app/detected` (a prefix) in your routes, or `app` (also 
+# a prefix), or both.
+#
+# applications may also store any other configuration they need in thier
+# service definition. If your app has a lot of options, it might make more
+# sense to load them from a conf file then request them all at the command
+# line.
+services:
+    # Example Service: beeper
+    # the beeper service sends alternating "beep" and "boop" events every 3
+    # seconds. Here is a service definition 
+    beep-localhost:
+        routes:
+            - beep
+            - boop
+        uris:
+            - tcp://127.0.0.1:10001
+        # seconds between sends of each
+        beep-rate: 1.6
+        boop-rate: 2.5
+    # definition for a squidwork.web.monitor instance
+    # s.w.monitor is not a publisher, so it lists no routes
+    devel-monitor:
+        debug: true
+        port: 8888       # HTTP port for the web ui
+        cache-size: 100  # number of mesages to cache
+        display-size: 15 # number of messages to show in the webui

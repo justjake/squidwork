@@ -7,46 +7,45 @@ from datetime import datetime
 from pprint import pprint as pp
 from time import sleep
 
-import squidwork.config as config
+from squidwork.config import Config, Service
 from squidwork.quick import sub
 from squidwork import Reciever
 
-#print_lock = threading.Lock()
 
 def main():
-    services = config.get_services()
+    # we don't care about the value because we're only interested in service
+    # definitions. Unfortunatley you may need a dummy service definition
+    Config().retrieve()
+    uris = Service.all_uris()
 
-    print("All services:")
-    pp(services)
+    if len(uris) == 0:
+        print('No URIs! Exiting.')
+        return
 
-    uris = set()
-    for svc in services:
-        uris = uris.union(svc.URIs)
+    print('Will listen to uris: ' + str(uris))
 
-    threads = [create_listener_thread(u) for u in uris]
+    for u in uris:
+        create_listener_thread(u).start()
 
-    for t in threads:
-        t.daemon = True # i don't really know what this does
-        t.start()
+    try:
+        while True:
+            sleep(1)
+    except KeyboardInterrupt:
+        print(' keyboard interrupt, exiting.')
+        return
 
-    while True:
-        # wait for death
-        sleep(1)
 
 def log(message):
     in_time = datetime.today()
     timestamp = "Sent: {out}, Recv: {in_}, delta: {diff}s".format(
-            out=message.time.isoformat(),
-            in_=in_time.isoformat(),
-            diff=(in_time - message.time).seconds)
+        out=message.time.isoformat(),
+        in_=in_time.isoformat(),
+        diff=(in_time - message.time).seconds)
     origin = "Origin: " + str(message.origin)
 
-    #print_lock.acquire()
     print(timestamp)
     print(origin)
     pp(message.content)
-    #print_lock.release()
-
 
 
 def create_listener_thread(uri):
@@ -55,7 +54,9 @@ def create_listener_thread(uri):
         recv = Reciever(sub(uri))
         while True:
             log(recv.recieve())
-    return threading.Thread(target=body)
+    t = threading.Thread(target=body)
+    t.daemon = True
+    return t
 
 if __name__ == '__main__':
     main()

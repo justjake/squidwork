@@ -14,6 +14,18 @@ from squidwork.web.handlers import (
     CoffeescriptHandler,
     ConsoleHandler)
 
+from squidwork.config import Config as BaseConfig
+
+
+def Config(*args, **kwargs):
+    """
+    a config object with debug and port options already required
+    """
+    config = BaseConfig(*args, **kwargs)
+    config.option('debug', type=bool)
+    config.option('port', type=int)
+    return config
+
 
 def handlers(config, **settings):
     """
@@ -39,7 +51,6 @@ def create_application(config, **settings):
     which will be served as JSON
     """
     app_handlers = handlers(config, **settings)
-    del settings['port']
     application = tornado.web.Application(
         app_handlers + [(r"/", ConsoleHandler)],
         **settings)

@@ -5,6 +5,13 @@ from .mapping import ManyToMany
 _prefix_to_uri = ManyToMany()
 
 
+class ConfigError(Exception):
+    """
+    an error in config parsing
+    """
+    pass
+
+
 class Service(object):
     """
     service API route prefix, and the ZeroMQ uri(s) to find it at.
@@ -76,28 +83,32 @@ class Service(object):
         prefixes = list(_prefix_to_uri.subscript_b(uri))
         return [cls(p, uri) for p in prefixes]
 
+    @classmethod
+    def all_uris(cls):
+        """
+        all URIs in loaded services
+        """
+        return _prefix_to_uri.Bs()
 
-def import_data(data):
-    """
-    Imports all the service entries in a data dump
-    for example, a YAML file should look like
+    @classmethod
+    def import_config_data(cls, data, debug=False):
+        """
+        import data from config file 2
+        """
 
-    Services
-        - route: ear
-          uris:
-            - tcp://192.168.0.201:9000
-        - route: darksouls
-          uris:
-            - tcp://192.168.0.205:9000
-    """
-    KEY = 'Services'
+        KEY = 'services'
 
-    if KEY not in data:
-        raise ValueError('config data does not contain key {}'.format(KEY))
+        if KEY not in data:
+            raise ConfigError(
+                'config data does not contain v2 key {}'.format(KEY))
 
-    data = data[KEY]
-
-    if not isinstance(data, list):
-        raise ValueError('config data not a list: {}'.format(data))
-
-    return [Service(s['prefix'], *(s['uris'])) for s in data]
+        # guard oopses
+        services = []
+        try:
+            for svc_config in data[KEY].values():
+                if 'routes' in svc_config and 'uris' in svc_config:
+                    for route in svc_config['routes']:
+                        services.append(Service(route, *svc_config['uris']))
+            return services
+        except TypeError as e:
+            raise ConfigError(e)

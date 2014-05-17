@@ -133,9 +133,11 @@ class MainController
 
     # collect all unique endpoints from the services list
     uris = {}
-    for svc in config.Services
-      for uri in svc.uris
-        uris[uri] = true
+    for svc_name of config.services
+      svc = config.services[svc_name]
+      if svc? and svc.uris?
+        for uri in svc.uris
+          uris[uri] = true
 
     # subscribe to all ('' matches everything)
     for uri of uris

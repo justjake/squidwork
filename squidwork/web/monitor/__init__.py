@@ -30,12 +30,13 @@ import tornado.ioloop
 import scss
 Scss = scss.Scss()
 
-import squidwork.web.config as config
+from squidwork.config import Service
 from squidwork.sender import MessageEncoder
 from squidwork import Message
 from squidwork.quick import sub
 from squidwork.async import AsyncReciever
 from squidwork.web import handlers as api_handlers
+from squidwork.web import Config
 from squidwork.web.handlers import (
     JSONHandler, CoffeescriptHandler,
     TemplateRenderer)
@@ -135,25 +136,22 @@ def main():
     run the app!
     currently very hairy. starts with dummy data
     """
+
     settings = dict(debug=True,
                     template_path=os.path.dirname(os.path.realpath(__file__)))
 
-    parser = config.create_argparser(prog='squidwork.web.monitor')
-    parser.add_argument('-n', '--num', help='number of elements to store',
-                        default=15)
+    conf = Config('squidwork.web.monitor')
+    conf.option('cache-size', type=int, help='numer of elements to store')
+    conf.option('display-size', type=int, help='numer of elements to store')
+    conf.retrieve()
 
-    options = parser.parse_args()  # command line optionsj
-    full_config = config.get_config(options.config)  # YAML load of conf file
-    services = config.get_services(options)  # list of services in conf file
-    port = config.get_port(options)  # port
+    port = conf.port
 
     # the message buffer stores the last N mesages
-    cache = MessageCache(options.num)
+    cache = MessageCache(conf.cache_size)
 
     # subscribe to all services!
-    uris = set()
-    for svc in services:
-        uris = uris.union(svc.URIs)
+    uris = Service.all_uris()
     recvr = AsyncReciever(sub(*uris))
     recvr.on_recieve(cache.add)
 
@@ -163,7 +161,7 @@ def main():
 
     # we include the api_handlers from squidwork.web so we can use the
     # squidwork web<--WebSocket-->ZeroMq bridge
-    all_handlers = api_handlers(full_config, **settings) + [
+    all_handlers = api_handlers(conf.raw_config, **settings) + [
 
         # the index page is totally static -- all it does is request javascript
         (r"/", TemplateRenderer, dict(source='templates/index.html')),
@@ -176,7 +174,7 @@ def main():
         # big coffeescript app written with Mithril.js. All HTML structure on
         # the page is produced by view functions in app.coffee
         (r"/app.js", CoffeescriptHandler,
-            dict(source='templates/app.coffee', count=options.num)),
+            dict(source='templates/app.coffee', count=conf.display_size)),
 
         # static, plain-jane scss
         (r"/style.css", ScssHandler, dict(source='templates/style.scss')),

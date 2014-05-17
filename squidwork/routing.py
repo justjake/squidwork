@@ -61,6 +61,11 @@ class Route(object):
     def __repr__(self):
         return '<Route {}>'.format(str(self))
 
+    def __hash__(self):
+        return hash(str(self))
+
+    def __eq__(self, other):
+        return str(self) == str(other)
 
 class Origin(object):
     """
