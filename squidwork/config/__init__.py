@@ -1,7 +1,24 @@
 """
 squidwork.config provies a unified interface to command line arguments and
-the squidwork YAML configuration file. Please see the section in README.md on
-configuration.
+the squidwork YAML configuration file. Please see the example config file
+conf2.yml for a detail description of the configuration file format.
+
+basically it's YAML that looks like this:
+
+conf-version: 2
+services:
+    some-name:
+        routes:
+            - hi
+            - another/route
+        uris:
+            tcp://love.gov:6969
+    another-name
+        routes:
+            - hi
+            - another/route
+        uris:
+            tcp://hate.co.nz:6969
 """
 
 __author__ = 'Jake Teton-Landis'
