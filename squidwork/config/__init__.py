@@ -169,8 +169,8 @@ class Config(object):
             # tells the user that the item will come from config, and it's
             # better than using None, which could possibly be specified on the
             # command line (???)
-            if opt in ns and ns.__dict__[opt] is not self.VALUE_FROM_CONFIG:
-                loaded_opts[python_name] = ns.__dict__[opt]
+            if python_name in ns and ns.__dict__[python_name] is not self.VALUE_FROM_CONFIG:
+                loaded_opts[python_name] = ns.__dict__[python_name]
 
             # it's an error if a required options wasn't defined in either the
             # args or the config file, but we want to note all such errors

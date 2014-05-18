@@ -49,6 +49,14 @@ class Service(object):
             uri=", ".join(list(self.URIs)),
             prefix=repr(self.prefix))
 
+    def __hash__(self):
+        return hash(self.prefix)
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.prefix == other.prefix
+        return False
+
     @classmethod
     def for_exact_prefix(cls, prefix):
         """
