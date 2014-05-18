@@ -22,6 +22,13 @@ class BridgeWebSocket(websocket.WebSocketHandler):
     behelf of our JavaScript clients
     """
 
+    def initialize(self, debug=False):
+        self.debug = debug
+
+    def log(self, *things):
+        if self.debug:
+            print ' '.join(['BridgeWebSocket:'] + list(things))
+
     def open(self):
         """
         run when a new websocket connection is initiated
@@ -49,6 +56,7 @@ class BridgeWebSocket(websocket.WebSocketHandler):
         perform a full SUB/UNSUB.
         """
         data = json.loads(message)
+        self.log('recieved:', message)
 
         if ACTION not in data and TARGET not in data:
             raise ValueError('Incorrect message: {}'.format(message))
@@ -86,6 +94,7 @@ class BridgeWebSocket(websocket.WebSocketHandler):
 
         ident = self.ident(uri, prefix)
         idents = self.recievers.iterkeys()
+        self.log('subscribe:', 'requested', ident)
 
         # we don't need to actually create more filtered sockets if we
         # already have a general one on the books.
@@ -94,20 +103,23 @@ class BridgeWebSocket(websocket.WebSocketHandler):
         if ident in self.recievers or self.any_has_prefix(ident, idents):
             # already subscribed
             self.write_message({'success': 'already subscribed'})
+            self.log('subscribe:', 'already has', ident)
             return
 
         # create a new reciever and a callback for it
+        self.log('subscribe:', 'subscribing to prefix', repr(prefix), 'at uri', uri)
         rcvr = AsyncReciever(sub(uri), prefix)
         self.recievers[ident] = rcvr
         rcvr.on_recieve(self.write_squidwork)
 
-        self.write_message({'success': 'subscribed'})
+        self.write_message({'success': 'subscribed {}'.format(ident)})
 
     def unsub(self, uri, prefix=''):
         """
         unsubscribe from the given prefix on the URI
         """
         ident = self.ident(uri, prefix)
+        self.log('unsub:', 'requested', ident)
 
         if ident not in self.recievers:
             return self.write_message(
@@ -116,5 +128,6 @@ class BridgeWebSocket(websocket.WebSocketHandler):
         rcvr = self.recievers[uri]
         rcvr.close()
         del self.recievers[uri]
+        self.log('unsub:', 'did unsub', ident)
 
-        self.write_message({'success': 'unsubscribed'})
+        self.write_message({'success': 'unsubscribed {}'.format(ident)})

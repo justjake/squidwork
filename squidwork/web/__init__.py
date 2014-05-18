@@ -12,7 +12,8 @@ from squidwork.web.socket import (
 from squidwork.web.handlers import (
     JSONHandler,
     CoffeescriptHandler,
-    ConsoleHandler)
+    ConsoleHandler,
+    TemplateRenderer)
 
 from squidwork.config import Config as BaseConfig
 
@@ -50,7 +51,7 @@ def handlers(config_data,
                socket_uri=lambda self: self.reverse_absolute(ws_name, protocol='ws'),
                debug=debug,
                template_relative_to_class=True))
-    ws = (ws_route, BridgeWebSocket, None, ws_name)
+    ws = (ws_route, BridgeWebSocket, dict(debug=debug), ws_name)
     json = (json_route, JSONHandler, dict(data=config_data))
 
     return [js, ws, json]
