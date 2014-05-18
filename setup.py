@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(name='squidwork',
-      version='0.0.8',
+      version='0.0.8r1',
       description='trivial JSON event protocol over ZeroMQ',
       author='Jake Teton-Landis',
       author_email='just.1.jake@gmail.com',
