@@ -136,15 +136,13 @@ def main():
     run the app!
     currently very hairy. starts with dummy data
     """
-
-    settings = dict(debug=True,
-                    template_path=os.path.dirname(os.path.realpath(__file__)))
-
     conf = Config('squidwork.web.monitor')
     conf.option('cache-size', type=int, help='numer of elements to store')
     conf.option('display-size', type=int, help='numer of elements to store')
     conf.retrieve()
 
+    settings = dict(debug=conf.debug,
+                    template_path=os.path.dirname(os.path.realpath(__file__)))
     port = conf.port
 
     # the message buffer stores the last N mesages
