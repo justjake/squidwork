@@ -7,6 +7,7 @@ import coffeescript
 import json
 import re
 import os
+import inspect
 
 
 def pretty_json(data, **kwargs):
@@ -121,7 +122,12 @@ class JSONHandler(tornado.web.RequestHandler):
         we can have dynamic content
         """
         if callable(self._data):
+            args = inspect.getargspec(self._data).args
+            # call on self
+            if args and len(args) == 1:
+                return self._data(self)
             return self._data()
+
         return self._data
 
     def set_default_headers(self):

@@ -34,7 +34,7 @@ class BridgeWebSocket(websocket.WebSocketHandler):
         run when a new websocket connection is initiated
         """
         self.recievers = {}
-        self.log('client connected', self.request.remote_ip)
+        self.log('client connected from', self.request.remote_ip)
 
     def on_close(self):
         """

@@ -31,7 +31,7 @@ def Config(*args, **kwargs):
 def handlers(config_data,
              debug=False,
              js_route=r'/squidwork.js',
-             ws_route=r'/connect.ws',
+             ws_route=r'/ws/connect.ws',
              json_route=r'/config.json'):
     """
     returns the core handlers required for websocket mirror functionality:
