@@ -73,7 +73,9 @@
         {% for f in files %}
         <tr class="file">
             <td class="thumb">
-                <img class="thumb" src="{{ f.thumb_url }}" />
+                <a href="{{ f.image_url }}">
+                    <img class="thumb" src="{{ f.thumb_url }}" />
+                </a>
             </td>
             <td>
                 <a href="{{ f.image_url }}">

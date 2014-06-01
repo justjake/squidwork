@@ -39,7 +39,7 @@ $green:     #859900;
   background: $base;
   border-bottom: $size solid lighten($base, $lighten);
 
-  a, a:active a:visited {
+  a, a:active, a:visited {
     color: $base;
     display: inline-block;
     padding: $size;
