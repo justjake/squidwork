@@ -1,0 +1,93 @@
+<!doctype html>
+<!-- 
+......................_....._...................._......
+......___..__._._..._(_).__|.|_......_____.._.__|.|.__..
+...../.__|/._`.|.|.|.|.|/._`.\.\./\././._.\|.'__|.|/./..
+.....\__.\.(_|.|.|_|.|.|.(_|.|\.V..V./.(_).|.|..|...<._.
+.....|___/\__,.|\__,_|_|\__,_|.\_/\_/.\___/|_|..|_|\_(_)
+.............|_|........................................
+-->
+<head>
+    <title>Gifs.Armada - Index of /{{ path }}</title>
+    <link rel="stylesheet" href="/style.css"/>
+</head>
+<body>
+<header>
+    <h1>
+        Index of /{{ path }}
+        <small>
+            {% if len(dirs) %}
+            <a href="#dirs">{{ len(dirs) }} folders</a>
+            {% end %}
+
+            {% if len(files) %}
+            <a href="#files">{{ len(files) }} files</a>
+            {% end %}
+        </small>
+        {% if len(path) %}
+        <a style="float: right" href=".."><span class="arrow">⇪</span></a>
+        {% end %}
+    </h1>
+</header>
+
+<table>
+    {% if len(dirs) %}
+        <tr class="column-header">
+            <th class="thumb">Folders</th>
+            {% for c in columns %}
+                <th class="{{ c.ident }}">
+                    <a title="sort by this column" href="{{ query_string(c) }}">
+                        {{ c.friendly }}
+                    </a>
+                </th>
+            {% end %}
+        </tr>
+
+        {% for dir in dirs %}
+        <tr class="directory" id="dirs">
+            <td></td>
+            <td class="name">
+                <a href="{{ dir.url }}">
+                    {{ dir.basename }}
+                </a>
+            </td>
+            <td class="">{{ dir.last_modified }}</td>
+            <td>{{ dir.size }}</td>
+            <td></td>
+        </tr>
+        {% end %}
+    {% end %}
+
+    {% if len(files) %}
+        <tr class="column-header" id="files">
+            <th class="thumb">Files</th>
+            {% for c in columns %}
+            <th class="{{ c.ident }}">
+                <a title="sort by this column" href="{{ query_string(c) }}">
+                    {{ c.friendly }}
+                </a>
+            </th>
+            {% end %}
+        </tr>
+
+        {% for f in files %}
+        <tr class="file">
+            <td class="thumb">
+                <img class="thumb" src="{{ f.thumb_url }}" />
+            </td>
+            <td>
+                <a href="{{ f.image_url }}">
+                    {{ f.basename }}
+                </a>
+            </td>
+            <td>{{ f.last_modified }}</td>
+            <td>{{ f.size }}</td>
+            <td>{{ f.hits }}</td>
+            <!--<td>{{ f.rating }}-->
+                <!--<small>(rated {{ f.rating_hits }} times)</small></td>-->
+        </tr>
+        {% end %}
+    {% end %}
+</table>
+
+</body>

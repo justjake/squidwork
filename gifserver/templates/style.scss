@@ -1,0 +1,196 @@
+/**
+ * lovely scss
+ */
+
+// solarized online and fully operational
+$base03:    #002b36;
+$base02:    #073642;
+$base01:    #586e75;
+$base00:    #657b83;
+$base0:     #839496;
+$base1:     #93a1a1;
+$base2:     #eee8d5;
+$base3:     #fdf6e3;
+$yellow:    #b58900;
+$orange:    #cb4b16;
+$red:       #dc322f;
+$magenta:   #d33682;
+$violet:    #6c71c4;
+$blue:      #268bd2;
+$cyan:      #2aa198;
+$green:     #859900;
+
+*, *:before, *:after {
+    // always a good idea
+    box-sizing: border-box;
+    color-profile: sRGB;
+    rendering-intent: auto;
+}
+
+// how much vertical padding, per horizontal padding
+@mixin p($size,  $ratio: 0.5, $units: 'em') {
+    padding: (($ratio * $size) + $units) ($size + $units);
+}
+
+
+// colorblock
+@mixin cb($base, $size: 5px, $lighten: 30%) {
+  color: #fff;
+  background: $base;
+  border-bottom: $size solid lighten($base, $lighten);
+
+  a, a:active a:visited {
+    color: $base;
+    display: inline-block;
+    padding: $size;
+    background-color: lighten($base, $lighten);
+    text-decoration: none;
+  }
+
+  a:active {
+    background: #fff;
+  }
+}
+
+%clearfix {
+    &:after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+}
+
+// second section
+@mixin other-side {
+    .side:nth-child(2) & {
+        @content;
+    }
+}
+
+// here's the size where we become two-column
+@mixin two-col {
+    @media all and (min-width: 800px) {
+        @content;
+    }
+}
+
+// can't combine dreclty because fuk
+@mixin other-col {
+    @media all and (min-width: 800px) {
+        // COMMENTED OUT FOR NOW!
+        .side:nth-child(2) & {
+            // @content;
+        }
+    }
+}
+
+@function b($opacity) {
+  @return rgba(0, 0, 0, $opacity);
+}
+
+
+html, body {
+    padding: 0px;
+    margin: 0px;
+
+    font-family: sans-serif;
+    background: $base3;
+    color: $base01;
+    font-size: 16px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @include p(0.9);
+  margin-top: 0;
+
+  @include cb($cyan);
+
+  @include other-side {
+    @include cb($magenta);
+  }
+}
+
+ol, ul {
+    padding: 0;
+    list-style: none;
+}
+
+
+@mixin placeholder {
+    &::-webkit-input-placeholder { @content; }
+    &:-moz-placeholder { @content; }
+    &::-moz-placeholder { @content; }
+    &:-ms-input-placeholder { @content; }
+  }
+
+$thumb: 85px;
+
+h1 {margin-bottom: 0}
+
+.arrow {
+  font-size: 120%;
+}
+
+a {
+  color: $cyan;
+}
+
+a:visited {
+  color: darken($cyan, 15%);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+
+
+  .column-header th {
+    @include cb($base2);
+    color: $base00;
+    padding: 0.5em;
+
+    a, a:visited {
+      //background: $cyan;
+      border-radius: 2px;
+      color: $base00;
+    }
+
+  }
+
+  td {
+    padding: 0.25em .5em;
+
+    // sizing
+    &.thumb {width: 10%; min-width: $thumb}
+    &.name {width: 50%}
+    &.modified {width: 20%}
+    &.size {width: 10%}
+
+    &:nth-child(even) {
+      background: b(2.5%);
+    }
+
+  }
+
+  td.thumb {
+    text-align: center;
+    height: $thumb;
+    padding: 0;
+  }
+
+  tr:nth-child(even) {
+    background: b(2.5%);
+  }
+
+  img.thumb {
+    max-width: $thumb;
+    max-height: $thumb;
+  }
+
+}
+
+th {
+  text-align: left;
+}
+
+

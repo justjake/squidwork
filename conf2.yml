@@ -81,3 +81,19 @@ services:
         port: 8888       # HTTP port for the web ui
         cache-size: 100  # number of mesages to cache
         display-size: 15 # number of messages to show in the webui
+    leige:
+        debug: true
+        port: 8888
+        wit_token: NOPE
+        routes:
+            - wit
+        uris:
+            #- tcp://127.0.0.1:10002
+            - tcp://0.0.0.0:10002
+    gif:
+        debug: true
+        port: 8889
+        images: /home/jitl/images/wallpapers
+        thumbs: /tmp/thumbdingus
+        database: 'sqlite:///home/jitl/src/squidwork/gifdb.sqlite'
+
