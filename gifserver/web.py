@@ -81,7 +81,7 @@ def hits_or(other):
         return other(f)
     return hits_or_other
 
-hits_or_name = hits_or(lambda f: f.name)
+hits_or_name = hits_or(lambda f: f.basename)
 hits_or_none = hits_or(lambda f: None)
 
 
