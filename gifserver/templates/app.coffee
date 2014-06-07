@@ -51,7 +51,7 @@ class Row
     $('#popup').hide()
 
 
-escape_html = (str) ->
+window.escape_html = escape_html = (str) ->
    div = document.createElement('div')
    div.appendChild(document.createTextNode(str))
    return div.innerHTML
@@ -63,7 +63,7 @@ HoverCardView = (row) ->
   <figure class="hover-card" style="top: #{top}px; left: #{60}px">
     <img src="#{row.image_uri}">
     <figcaption>
-      #{escape_html(row)}
+      #{escape_html(row.name)}
     </figcaption>
   </figure>
   """
