@@ -154,10 +154,12 @@ class HitCountImageServer(tornado.web.StaticFileHandler):
         if self.absolute_path is None:
             return
 
-        # count access times with hit()
-        img = Image.for_path(self.absolute_path)
-        img.hit()
-        img.generate_thumb_in_background()
+        should_count = self.get_argument('count', 'true')
+        if should_count != 'false':
+            # count access times with hit()
+            img = Image.for_path(self.absolute_path)
+            img.hit()
+            img.generate_thumb_in_background()
 
         return super(HitCountImageServer, self).get(path, include_body)
 
@@ -195,11 +197,14 @@ def main():
         (r'/(.*)', DirectoryLister, dict(path=config.images))
     ]
 
-    templates = os.path.dirname(os.path.realpath(__file__)) + '/templates'
+    home = os.path.dirname(os.path.realpath(__file__))
+    static = home + '/static'
+    templates = home + '/templates'
 
     app = tornado.web.Application(handlers,
                                   debug=config.debug,
-                                  template_path=templates)
+                                  template_path=templates,
+                                  static_path=static)
     try:
         app.listen(config.port)
         tornado.ioloop.IOLoop.instance().start()
