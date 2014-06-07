@@ -79,9 +79,11 @@ def hits_or(other):
         if hasattr(f, 'hits'):
             return f.hits
         return other(f)
+    return hits_or_other
 
 hits_or_name = hits_or(lambda f: f.name)
 hits_or_none = hits_or(lambda f: None)
+
 
 class DirectoryLister(SortedTableView):
     def initialize(self, path):
