@@ -10,6 +10,9 @@
 <head>
     <title>Gifs.Armada - Index of /{{ path }}</title>
     <link rel="stylesheet" href="/style.css"/>
+    <script src="/static/mithril.js"></script>
+    <script src="/static/zepto.js"></script>
+    <script src="/app.js"></script>
 </head>
 <body>
 <header>
@@ -29,6 +32,8 @@
         {% end %}
     </h1>
 </header>
+
+<div id="popup" style="display: none"></div>
 
 <table>
     {% if len(dirs) %}
@@ -77,19 +82,20 @@
                     <img class="thumb" src="{{ f.thumb_url }}" />
                 </a>
             </td>
-            <td>
+            <td class="name">
                 <a href="{{ f.image_url }}">
                     {{ f.basename }}
                 </a>
             </td>
-            <td>{{ f.last_modified }}</td>
-            <td>{{ f.size }}</td>
-            <td>{{ f.hits }}</td>
+            <td class="date">{{ f.last_modified }}</td>
+            <td class="size">{{ f.size }}</td>
+            <td class="hits">{{ f.hits }}</td>
             <!--<td>{{ f.rating }}-->
                 <!--<small>(rated {{ f.rating_hits }} times)</small></td>-->
         </tr>
         {% end %}
     {% end %}
 </table>
+
 
 </body>

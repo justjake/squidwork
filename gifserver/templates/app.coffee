@@ -1,165 +1,77 @@
-"""
-wee
-"""
+class Row
+  constructor: (@name, @image_uri, @hits, @modified) ->
 
-# explicit imports
-squidwork = window.squidwork
-m = window.Mithril
+  # dom-based constructor
+  @from_dom = (dom_el) ->
+    $el = $(dom_el)
+    image_uri = $el.find('a').attr('href') + '?count=false' # don't count for
+    hits = parseInt($el.find('td.hits').text(), 10)
+    name = $el.find('td.name').text() or ""
+    modified = $el.find('td.modified').text()
+    row = new Row(name, image_uri, hits, modified)
+    row.dom = $el[0]
+    return row
 
-###############################################################################
-#                                  VIEWS                                      #
-###############################################################################
+  # creates an image dom element
+  load_image: () ->
+    if @image?
+      return @image
 
-AppView = (ctrl) ->
-  window.controller = ctrl
-  m 'html', [
-    m('head', [
-      m('title', 'yes, my liege?'),
-      m('link[rel=stylesheet][href=/style.css]')
-    ]),
-    m 'body', [
-      m('form.commander', {onsubmit: ctrl.submit}, [
-        m('input[type=text][placeholder=yes, my liege?][autofocus]', {
-          value: ctrl.query(),
-          onchange: m.withAttr('value', ctrl.query)
-        })
-      ]),
-      MessageList(ctrl.messages())
-    ]
-  ]
+    @image = new Image()
+    @image.src = @image_uri
+    return @image
 
-MessageList = (msgs) ->
-  m 'section.messages', [
-    m 'ol.message-list', msgs.map (msg) ->
-      m 'li.message', {class: msg.origin.toString()}, [
-        m('.info', [
-          m('span.origin', msg.origin.toString()),
-          m('span.time', msg.time.toString())
-        ]),
-        m '.data', render_json(msg.content)
-      ]
-  ]
+  mouse_enter: (evt) =>
+    # already queued view
+    if (@popup_timeout)
+      return
+    @load_image()
+    @popup_timeout = setTimeout(@show_popup, 50)
 
-render_json = (data) ->
-  # adapted from http://stackoverflow.com/questions/4810841/how-can-i-pretty-print-json-using-javascript
-  # wraps JSON data in span elements so that syntax highlighting may be
-  # applied. Should be placed in a `whitespace: pre` context
-  if typeof(data) isnt 'string'
-    data = JSON.stringify(data, undefined, 2)
+  mouse_leave: (evt) =>
+    if @popup_timeout
+      clearTimeout(@popup_timeout)
+      @popup_timeout = null
+    @hide_popup()
 
-  # these regexes are ORed together to form the JSON tokenizer
-  unicode =     /"(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?/
-  keyword =     /\b(true|false|null)\b/
-  whitespace =  /\s+/
-  punctuation = /[,.}{\[\]]/
-  number =      /-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/
+  # not the most graceful way to do this, but im not doing an app's worth
+  # of engineerign to show a lightbox
+  show_popup: () =>
+    view = HoverCardView(this)
+    $popup = $('#popup')
+    #m.render($popup[0], [view])
+    $popup[0].innerHTML = view
+    $popup.show()
+    # sharpen-ify: replace with little version
+    # so you can right-click -> copy link location (??)
+    # $(@dom).find('img.thumb').attr('src', @image_uri)
+    # maybe in the future :)
 
-  # combine by | or-ing
-  syntax = '(' + [unicode, keyword, whitespace,
-            punctuation, number].map((r) -> r.source).join('|') + ')'
-  parser = new RegExp(syntax, 'g')
-
-  nodes = data.match(parser) ? []
-  select_class = (node) ->
-    if punctuation.test(node)
-      return 'punctuation'
-    if /^\s+$/.test(node)
-      return 'whitespace'
-    if /^"/.test(node)
-      if /:$/.test(node)
-        return 'key'
-      return 'string'
-
-    if /true|false/.test(node)
-      return 'boolean'
-
-     if /null/.test(node)
-       return 'null'
-     return 'number'
-  return nodes.map (node) ->
-    cls = select_class(node)
-    return m('span', {class: cls}, node)
+  hide_popup: () =>
+    $('#popup').hide()
 
 
-###############################################################################
-#                                  MODELS                                     #
-###############################################################################
+escape_html = (str) ->
+   div = document.createElement('div')
+   div.appendChild(document.createTextNode(str))
+   return div.innerHTML
 
-class MessageCache
+HoverCardView = (row) ->
+  {top, left} = $(row.dom).offset()
+  top += $(row.dom).height()
   """
-  keep a cache of the @max_count last messages, as well as a map of the latest
-  message from each origin
+  <figure class="hover-card" style="top: #{top}px; left: #{60}px">
+    <img src="#{row.image_uri}">
+    <figcaption>
+      #{escape_html(row)}
+    </figcaption>
+  </figure>
   """
-  constructor: (@max_count, latest=[], by_origin={}) ->
-    @cache = []
-    @callbacks = []
-    @by_origin = {}
-    @insert(latest...)
-    # explicity set by_origin after add so we have the correct
-    # initial state
-    @by_origin = by_origin
-
-  insert: (messages...) ->
-    for msg in messages
-      @by_origin[msg.origin] = msg
-
-    @cache = @cache.concat(messages)[-@max_count..]
 
 
-###############################################################################
-#                                CONTROLLERS                                  #
-###############################################################################
-
-class Set
-  constructor: (items...) ->
-    @hashset = {}
-    @add(items...)
-
-  add: (items...) ->
-    for i in items
-      @hashset[i] = true
-    this
-
-  items: () ->
-    items = []
-    for i of @hashset
-      items.push(i)
-    items
-
-class LiegeController
-  """
-  submits dingus to get wit response
-  on window creation, listens to all wit messages
-  """
-  constructor: () ->
-    @cache = new MessageCache(20)
-    @query = m.prop('')
-    uris = new Set()
-    for route of squidwork.services
-      uris.add(squidwork.services[route]...)
-    for uri in uris.items()
-      console.log 'subscribing', uri
-      squidwork.subscribe(uri, 'wit', @recieve_message)
-
-  messages: () ->
-    @cache.cache.sort((a, b) -> b.time - a.time)
-
-  recieve_message: (msg) =>
-    @cache.insert(msg)
-    m.redraw()
-
-  submit: (e) =>
-    e.preventDefault()
-    m.request(method: 'GET', url: '/wit', data: {q: @query()})
-    @query('')
-
-###############################################################################
-#                               ENTRY POINT                                   #
-###############################################################################
-
-app = window.app = {}
-app.MessageCache = MessageCache
-app.LiegeController = LiegeController
-app.AppView = AppView
-
-Mithril.module(document, {view: AppView, controller: LiegeController})
+$(document).ready () ->
+  for el in $('tr.file')
+    row = Row.from_dom(el)
+    icon = $(el).find('td.thumb')
+    icon.on('mouseenter', row.mouse_enter)
+    icon.on('mouseleave', row.mouse_leave)

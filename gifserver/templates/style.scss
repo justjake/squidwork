@@ -23,6 +23,7 @@ $green:     #859900;
 *, *:before, *:after {
     // always a good idea
     box-sizing: border-box;
+    -moz-box-sizing: border-box;
     color-profile: sRGB;
     rendering-intent: auto;
 }
@@ -193,4 +194,19 @@ th {
   text-align: left;
 }
 
+.hover-card {
+  border: 4px solid $cyan;
+  background: lighten($cyan, 25%);
+  position: absolute;
+  text-align: center;
+  max-width: 75%;
+  padding: 1em 1em 0 1em;
+  img {
+    max-width: 100%;
+  }
+  figcaption {
+    line-height: 1.5em;
+    color: #fff;
+  }
+}
 
