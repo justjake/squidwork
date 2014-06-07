@@ -70,6 +70,19 @@ class SortedTableView(tornado.web.RequestHandler):
         return '?' + urllib.urlencode(dict(col=column.ident, order=new_order))
 
 
+def hits_or(other):
+    """
+    acess an objects hits, or if it has no attr hits,
+    some other property
+    """
+    def hits_or_other(f):
+        if hasattr(f, 'hits'):
+            return f.hits
+        return other(f)
+
+hits_or_name = hits_or(lambda f: f.name)
+hits_or_none = hits_or(lambda f: None)
+
 class DirectoryLister(SortedTableView):
     def initialize(self, path):
         super(DirectoryLister, self).initialize()
@@ -80,7 +93,7 @@ class DirectoryLister(SortedTableView):
         self.add_column('Last Modified', 'mod', lambda f: f.mtime,
                         lambda f: f.last_modified)
         self.add_column('Size', 'size', lambda f: f.bytes, lambda f: f.size)
-        self.add_column('Hits', 'hits', lambda f: f.hits, lambda f: f.hits)
+        self.add_column('Hits', 'hits', hits_or_name, hits_or_none)
 
     def get(self, path, include_body=True):
         # preable taken from StaticFileHandler
