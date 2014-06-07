@@ -42,6 +42,19 @@ class Row
     #m.render($popup[0], [view])
     $popup[0].innerHTML = view
     $popup.show()
+
+    # keep image from folling off page
+    $fig = $popup.find('.hover-card')
+    {top, left} = $fig.offset()
+    bottom_of_el = top + $fig.outerHeight() + 20
+    bottom_of_page = $(window).scrollTop() + $(window).height()
+    offset = bottom_of_page - bottom_of_el
+    if offset < 0
+      # we were off the page to some extent
+      # reposition by offset
+      $fig.offset(top: top + offset, left: left)
+    
+    
     # sharpen-ify: replace with little version
     # so you can right-click -> copy link location (??)
     # $(@dom).find('img.thumb').attr('src', @image_uri)
@@ -59,11 +72,14 @@ window.escape_html = escape_html = (str) ->
 HoverCardView = (row) ->
   {top, left} = $(row.dom).offset()
   top += $(row.dom).height()
+  name = row.name
+  [title..., extension] = name.split('.')
+  title = title.join(' ').replace(/_|-/g, ' ')
   """
   <figure class="hover-card" style="top: #{top}px; left: #{60}px">
     <img src="#{row.image_uri}">
     <figcaption>
-      #{escape_html(row.name)}
+      #{escape_html(title)}
     </figcaption>
   </figure>
   """
