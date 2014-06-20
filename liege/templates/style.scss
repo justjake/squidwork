@@ -1,0 +1,223 @@
+/**
+ * lovely scss
+ */
+
+// solarized online and fully operational
+$base03:    #002b36;
+$base02:    #073642;
+$base01:    #586e75;
+$base00:    #657b83;
+$base0:     #839496;
+$base1:     #93a1a1;
+$base2:     #eee8d5;
+$base3:     #fdf6e3;
+$yellow:    #b58900;
+$orange:    #cb4b16;
+$red:       #dc322f;
+$magenta:   #d33682;
+$violet:    #6c71c4;
+$blue:      #268bd2;
+$cyan:      #2aa198;
+$green:     #859900;
+
+*, *:before, *:after {
+    // always a good idea
+    box-sizing: border-box;
+    color-profile: sRGB;
+    rendering-intent: auto;
+}
+
+// how much vertical padding, per horizontal padding
+@mixin p($size,  $ratio: 0.5, $units: 'em',) {
+    padding: (($ratio * $size) + $units) ($size + $units);
+}
+
+
+// colorblock
+@mixin cb($base, $size: 5px, $lighten: 30%) {
+    color: #fff;
+    background: $base;
+    border-bottom: $size solid lighten($base, $lighten);
+}
+
+%clearfix {
+    &:after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+}
+
+// second section
+@mixin other-side {
+    .side:nth-child(2) & {
+        @content;
+    }
+}
+
+// here's the size where we become two-column
+@mixin two-col {
+    @media all and (min-width: 800px) {
+        @content;
+    }
+}
+
+// can't combine dreclty because fuk
+@mixin other-col {
+    @media all and (min-width: 800px) {
+        // COMMENTED OUT FOR NOW!
+        .side:nth-child(2) & {
+            // @content;
+        }
+    }
+}
+
+
+
+html, body {
+    padding: 0px;
+    margin: 0px;
+
+    font-family: sans-serif;
+    background: $base3;
+    color: $base01;
+    font-size: 16px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    @include p(0.9);
+    margin-top: 0;
+
+    @include cb($blue);
+
+    @include other-side {
+        @include cb($magenta);
+    }
+}
+
+ol, ul {
+    padding: 0;
+    list-style: none;
+}
+
+@include two-col {
+    .side { 
+        width: 50%;
+        height: 100%;
+        float: left;
+        @extend %clearfix;
+
+        &:nth-child(2) {
+            /*background: $base2;*/
+        }
+    }
+}
+
+@mixin placeholder {
+    &::-webkit-input-placeholder { @content; }
+    &:-moz-placeholder { @content; }
+    &::-moz-placeholder { @content; }
+    &:-ms-input-placeholder { @content; }
+  }
+
+
+// style the form
+form.commander {
+  input[type=text] {
+    border: 0;
+    display: block;
+    font-size: 2em;
+    width: 100%;
+    margin: 0;
+    @include cb($red); 
+    @include p(0.9);
+    @include placeholder {
+      color: $base2;
+    }
+
+    &:active, &:focus {
+      outline: none;
+    }
+  }
+}
+
+
+// make data look embedded
+.message {
+    counter-increment: jark;
+    margin: 1em;
+    @include two-col {
+        margin-right: 0.5em;
+        @include other-side {
+            margin-left: 0.5em;
+        }
+    }
+
+    border: 5px solid $base2;
+    @include other-col {
+        border-color: $base3;
+    }
+
+    /* metadata */
+    .info{
+        background: $base3;
+        @include other-col {
+            background: $base2;
+        }
+        @extend %clearfix;
+        line-height: ((48px)/2);
+
+        span {
+            display: block;
+        }
+
+        /* custom list numbering */
+        &:before {
+            content: counter(jark); /* Use the counter as content */
+
+            /*background: #fff;*/
+            color: $blue;
+            @include other-side {
+                color: $magenta;
+            }
+
+            display: inline-block;
+            font-weight: bold;
+            font-size: 1.5em;
+            width: 2em;
+            line-height: 2em;
+            text-align: center;
+            float: left;
+
+            border-right: 5px solid $base2;
+            @include other-col {
+                border-color: $base3;
+                background: $base2;
+            }
+            box-sizing: content-box;
+            margin-right: 5px;
+        }
+    }
+
+    /* the JSON block */
+    .data {
+        font-size: 85%;
+        @include p(0.5, 1);
+        background: $base2;
+        @include other-col {
+            background: $base3;
+        }
+
+        white-space: pre-wrap;
+        font-family: monospace;
+        color: $base1;
+
+        /* syntax highlighting */
+        .string { color: $orange; }
+        .number { color: $blue; }
+        .boolean { color: $violet; }
+        .null { color: $red; }
+        .key { color: $cyan; }
+    }
+}
+
