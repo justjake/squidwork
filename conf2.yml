@@ -96,4 +96,10 @@ services:
         images: /home/jitl/images/wallpapers
         thumbs: /tmp/thumbdingus
         database: 'sqlite:///home/jitl/src/squidwork/gifdb.sqlite'
+    macgif:
+        debug: true
+        port: 8889
+        images: /Users/jitl/Pictures/
+        thumbs: /Users/jitl/Pictures/thumbs
+        database: 'sqlite:///Users/jitl/src/Squidwork/gifs.sqlite'
 
