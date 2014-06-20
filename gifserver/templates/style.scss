@@ -224,3 +224,37 @@ $check: #ddd;
   }
 }
 
+$drop-space: 1em;
+#drag-target {
+  position: fixed;
+  top: $drop-space;
+  right: $drop-space;
+  bottom: $drop-space;
+  left: $drop-space;
+
+  border: 10px dashed b(50%);
+  padding: 3em;
+  background: b(30%);
+
+  strong {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+
+    display: block;
+  }
+
+  span {
+    position: relative;
+    left: -50%;
+    top: -50%;
+
+    display: block;
+    font-size: 2em;
+    text-align: center;
+    border-radius: 3em;
+    padding: 0.5em;
+    background: $base3;
+  }
+}
+

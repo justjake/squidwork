@@ -84,8 +84,54 @@ HoverCardView = (row) ->
   </figure>
   """
 
+# the DragController oversees HTML5 drag-and-drop uploading of images,
+# or of remote downloading of URLs to images
+# @see https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Drag_and_drop#events
+class UploadController
+
+  constructor: () ->
+    @view = $('#drag-target')
+    @view_text = view.text.bind(view)
+    console.log('got view', view)
+
+  # mouse first moves over controller while dragging
+  drag_enter: (evt) =>
+    console.log "Drag enter", evt
+    evt.preventDefault()
+
+    view_text('welcome to drag')
+    view.show()
+    
+    return false
+
+  # fired while mouse moves
+  drag_over: (evt) =>
+    console.log "Drag over", evt
+    # allow drops
+    evt.preventDefault()
+    return false
+
+  drag_leave: (evt) =>
+    console.log "Drag leave", evt
+    # hide targeting overlay
+    view.hide()
+
+  drop: (evt) =>
+    console.log "Drop!", evt
+
+
+
 
 $(document).ready () ->
+
+  # we accept any dragging into the body
+  uc = new UploadController()
+  # $('body').on('dragstart', uc.drag_start)
+  $('body').on('dragenter', uc.drag_enter)
+  $('body').on('dragover', uc.drag_over)
+  $('body').on('drag', uc.drag_over)
+  console.log($('body'), 'is ready')
+
   for el in $('tr.file')
     row = Row.from_dom(el)
     icon = $(el).find('td.thumb')

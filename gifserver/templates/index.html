@@ -34,6 +34,15 @@
 </header>
 
 <div id="popup" style="display: none"></div>
+<div id="drag-target" style="display: none">
+  <!-- the DragController should change the text here
+       based on the type of drag.
+
+       image/*: Upload Image
+       text/*: Fetch Linked Image
+       -->
+  <strong><span>Drop To Perform Action</span></strong>
+</div>
 
 <table>
     {% if len(dirs) %}

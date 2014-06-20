@@ -30,7 +30,8 @@ setup(name='squidwork',
           "pyyaml",
           "tornado",       # for web
           "CoffeeScript",  # for web
-          "pyScss",        # for minitor, needs pcre-dev or it pisses warnings
           "sqlobject",      # for gifserver 
-          "PIL"
+          "PIL",
+          "pyScss", # for minitor, needs pcre-dev or it pisses warnings
+          "werkzeug"  # for debugging
         ])
