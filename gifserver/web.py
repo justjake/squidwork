@@ -1,5 +1,7 @@
 from collections import OrderedDict, namedtuple
+
 import os
+import re
 
 from sqlobject import sqlhub, connectionForURI
 import tornado.log
@@ -8,12 +10,16 @@ import tornado.ioloop
 from tornado.web import HTTPError
 
 import squidwork.web as web
+import squidwork.web.debuggable as debuggable
 from squidwork.web.monitor import ScssHandler
 from squidwork import Sender, MessageEncoder
 import squidwork.quick
 
 from file_image import File, Image, Dir
+from misc_handlers import HitCountImageServer, CanUpload
+
 import urllib
+
 
 """
 a column in the SortedTableView
@@ -159,24 +165,6 @@ class DirectoryLister(SortedTableView):
         return abspath
 
 
-class HitCountImageServer(tornado.web.StaticFileHandler):
-    """indexes and thumbnailifies images as it serves them"""
-    def get(self, path, include_body=True):
-        self.path = self.parse_url_path(path)
-        absolute_path = self.get_absolute_path(self.root, self.path)
-        self.absolute_path = self.validate_absolute_path(self.root,
-                                                         absolute_path)
-        if self.absolute_path is None:
-            return
-
-        should_count = self.get_argument('count', 'true')
-        if should_count != 'false':
-            # count access times with hit()
-            img = Image.for_path(self.absolute_path)
-            img.hit()
-            img.generate_thumb_in_background()
-
-        return super(HitCountImageServer, self).get(path, include_body)
 
 
 def configure(args=None):
@@ -204,6 +192,7 @@ def main():
 
     handlers = web.handlers(config.raw_config, debug=config.debug)
     handlers += [
+        (r'/upload', CanUpload, dict(debug=True, root=config.images + '/uploads', secret='butts')),
         (r'/app.js', web.CoffeescriptHandler, dict(source='app.coffee')),
         (r'/style.css', ScssHandler, dict(source='style.scss')),
         (r'/thumbs/(.*)', tornado.web.StaticFileHandler,
@@ -216,10 +205,15 @@ def main():
     static = home + '/static'
     templates = home + '/templates'
 
-    app = tornado.web.Application(handlers,
-                                  debug=config.debug,
-                                  template_path=templates,
-                                  static_path=static)
+    if config.debug:
+        app_class = debuggable.DebugApplication
+    else:
+        app_class = tornado.web.Application
+
+    app = app_class(handlers,
+                    debug=config.debug,
+                    template_path=templates,
+                    static_path=static)
     try:
         app.listen(config.port)
         tornado.ioloop.IOLoop.instance().start()
