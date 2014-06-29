@@ -99,7 +99,6 @@ class CoffeescriptHandler(TemplateRenderer):
         cs = self.template_string(self.args)
 
         if cs in self.CACHE:
-            print('hit cached Javascript for our coffeescript')
             self.write(self.CACHE[cs])
             self.finish()
             return
