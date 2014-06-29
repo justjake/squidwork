@@ -8,6 +8,7 @@ import json
 import re
 import os
 import inspect
+import logging
 
 
 def pretty_json(data, **kwargs):
@@ -79,19 +80,35 @@ class CoffeescriptHandler(TemplateRenderer):
     serves the squidwork.coffee library file as compiled
     javascript with a pre-created connection to the given
     socket uri location
+
+    Coffeescript --> Javascript compilation is memozied, which
+    is a gigantic, astronimical performance boon!
     """
+
+    # maps coffeescript to javascript
+    CACHE = {}
+
     def set_default_headers(self):
         self.set_header('Content-Type', 'text/javascript; charset=UTF-8')
 
     @tornado.web.asynchronous
     def get(self):
+
         self.write('/* rendering template ... */\n')
         # render template into coffeescript
         cs = self.template_string(self.args)
 
+        if cs in self.CACHE:
+            print('hit cached Javascript for our coffeescript')
+            self.write(self.CACHE[cs])
+            self.finish()
+            return
+
         # then compile to javascript
         self.write('/* compiling coffeescript ... */\n')
         js = coffeescript.compile(cs)
+
+        self.CACHE[cs] = js
 
         # and we're done!
         self.write(js)
