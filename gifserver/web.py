@@ -2,6 +2,7 @@ from collections import OrderedDict, namedtuple
 
 import os
 import re
+from random import randrange
 
 from sqlobject import sqlhub, connectionForURI
 import tornado.log
@@ -15,7 +16,7 @@ from squidwork.web.monitor import ScssHandler
 from squidwork import Sender, MessageEncoder
 import squidwork.quick
 
-from file_image import File, Image, Dir
+from file_image import File, Image, Dir, FileMeta, is_image
 from misc_handlers import HitCountImageServer, CanUpload
 
 import urllib
@@ -27,13 +28,14 @@ a column in the SortedTableView
 Column = namedtuple('Column', ['friendly', 'ident', 'sort_key', 'display_key'])
 
 
-class SortedTableView(tornado.web.RequestHandler):
+class SortedTableView(debuggable.Handler):
     """
     an apache-like directory listing table
     because i dont wanna do any javascript for now
     """
 
-    def initialize(self):
+    def initialize(self, debug=False):
+        super(SortedTableView, self).initialize(debug=debug)
         self.columns = OrderedDict()
         self.default_col = None
 
@@ -82,18 +84,19 @@ def hits_or(other):
     some other property
     """
     def hits_or_other(f):
-        if hasattr(f, 'hits'):
-            return f.hits
+        if hasattr(f, 'meta'):
+            return f.meta.hits
         return other(f)
     return hits_or_other
+
 
 hits_or_name = hits_or(lambda f: f.basename)
 hits_or_none = hits_or(lambda f: None)
 
 
 class DirectoryLister(SortedTableView):
-    def initialize(self, path):
-        super(DirectoryLister, self).initialize()
+    def initialize(self, path, debug=False):
+        super(DirectoryLister, self).initialize(debug=debug)
         self.root = path
         self.default_col = 'name'
         self.add_column('Name', 'name', lambda f: f.basename,
@@ -111,6 +114,7 @@ class DirectoryLister(SortedTableView):
         absolute_path = self.get_absolute_path(self.root, self.path)
         self.absolute_path = self.validate_absolute_path(self.root,
                                                          absolute_path)
+
         if self.absolute_path is None:
             return
 
@@ -118,22 +122,36 @@ class DirectoryLister(SortedTableView):
         abs_path = self.absolute_path
         rel_path = self.path
 
-        everything = [File(self.root, os.path.join(rel_path, f)) for f in
-                      os.listdir( abs_path)]
+        everything = [File(os.path.join(abs_path, f), self.root) for f in
+                      os.listdir(abs_path)]
+
+
         files = []
         directories = []
         for f in everything:
-            if f.is_directory:
-                directories.append(Dir(abs_path, f.relative))
+            if f.basename[0] == '.':
+                # hidden file
+                # do not display
                 continue
 
-            img = Image.for_path(f.absolute, f.relative)
-            img.generate_thumb_in_background()
-            files.append(img)
+            if f.is_directory:
+                directories.append(Dir(f.absolute, self.root))
+                continue
+
+            if is_image(f.absolute):
+                img = Image(f.absolute, self.root)
+                img.generate_thumb_in_background()
+                files.append(img)
+                continue
+
+            files.append(f)
+
 
         files = self.order(files)
         directories = self.order(directories)
         columns = self.columns.values()
+
+        #raise Exception('hi')
 
         self.render('index.html', files=files, dirs=directories, path=rel_path,
                     columns=columns, query_string=self.generate_query_string)
@@ -178,7 +196,7 @@ def configure(args=None):
     # set up connections
     sqlhub.processConnection = connectionForURI(config.database)
     # socket = squidwork.quick.pub(*config.uris)
-    Image.createTable(ifNotExists=True)
+    FileMeta.createTable(ifNotExists=True)
 
     # configure thumbnails
     Image.thumb_dir = config.thumbs
@@ -197,8 +215,8 @@ def main():
         (r'/style.css', ScssHandler, dict(source='style.scss')),
         (r'/thumbs/(.*)', tornado.web.StaticFileHandler,
                           dict(path=config.thumbs)),
-        (r'/images/(.*)', HitCountImageServer, dict(path=config.images)),
-        (r'/(.*)', DirectoryLister, dict(path=config.images))
+        (r'/files/(.*)', HitCountImageServer, dict(path=config.images)),
+        (r'/(.*)', DirectoryLister, dict(debug=True, path=config.images))
     ]
 
     home = os.path.dirname(os.path.realpath(__file__))

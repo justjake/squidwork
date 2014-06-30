@@ -59,15 +59,17 @@
 
         {% for dir in dirs %}
         <tr class="directory" id="dirs">
-            <td></td>
-            <td class="name">
-                <a href="{{ dir.url }}">
-                    {{ dir.basename }}
-                </a>
-            </td>
-            <td class="">{{ dir.last_modified }}</td>
-            <td>{{ dir.size }}</td>
-            <td></td>
+          <td class="thumb">
+            <img class="thumb" src="{{ dir.thumb_url }}" alt="folder"/>
+          </td>
+          <td class="name">
+            <a href="{{ dir.url }}">
+                {{ dir.basename }}
+            </a>
+          </td>
+          <td class="">{{ dir.last_modified }}</td>
+          <td>{{ dir.size }}</td>
+          <td></td>
         </tr>
         {% end %}
     {% end %}
@@ -87,20 +89,20 @@
         {% for f in files %}
         <tr class="file">
             <td class="thumb">
-                <a href="{{ f.image_url }}">
+                <a href="{{ f.file_url }}">
                     <img class="thumb" src="{{ f.thumb_url }}" />
                 </a>
             </td>
             <td class="name">
-                <a href="{{ f.image_url }}">
+                <a href="{{ f.file_url }}">
                     {{ f.basename }}
                 </a>
             </td>
             <td class="date">{{ f.last_modified }}</td>
             <td class="size">{{ f.size }}</td>
-            <td class="hits">{{ f.hits }}</td>
-            <!--<td>{{ f.rating }}-->
-                <!--<small>(rated {{ f.rating_hits }} times)</small></td>-->
+            <td class="hits">{{ f.meta.hits }}</td>
+            <!--<td>{{ f.meta.rating }}-->
+                <!--<small>(rated {{ f.meta.rating_hits }} times)</small></td>-->
         </tr>
         {% end %}
     {% end %}

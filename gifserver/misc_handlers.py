@@ -1,12 +1,14 @@
 import re
 import os
+from StringIO import StringIO
 
 import Image
 from IPython import embed  # for debugging
 import tornado.web
 import squidwork.web.debuggable as debuggable
 from tornado.httpclient import AsyncHTTPClient
-from StringIO import StringIO
+
+from file_image import Image as WebImage, FileMeta, is_image
 
 
 class HitCountImageServer(tornado.web.StaticFileHandler):
@@ -22,9 +24,11 @@ class HitCountImageServer(tornado.web.StaticFileHandler):
         should_count = self.get_argument('count', 'true')
         if should_count != 'false':
             # count access times with hit()
-            img = Image.for_path(self.absolute_path)
-            img.hit()
-            img.generate_thumb_in_background()
+            meta = FileMeta.for_path(self.absolute_path)
+            meta.hit()
+            if is_image(self.absolute_path):
+                img = WebImage(self.absolute_path, None)
+                img.generate_thumb_in_background()
 
         return super(HitCountImageServer, self).get(path, include_body)
 
@@ -37,11 +41,15 @@ class HitCountImageServer(tornado.web.StaticFileHandler):
         I'll serve everything else as octet-stream
         """
         content_type = super(HitCountImageServer, self).get_content_type()
+        content_type = content_type or 'application/octet-stream'
 
         # allow images and video
         if re.match(r'^image/', content_type) or (
                 re.match(r'^video/',  content_type)):
             return content_type
+
+        if re.match(r'^text/', content_type):
+            return 'text/plain'
 
         # otherwise return octet stream
         return 'application/octet-stream'

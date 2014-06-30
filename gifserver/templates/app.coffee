@@ -91,45 +91,87 @@ class UploadController
 
   constructor: () ->
     @view = $('#drag-target')
-    @view_text = view.text.bind(view)
-    console.log('got view', view)
+    span = @view.find('span')
+    @view_text = (txt) -> span.text(txt)
+    console.log('got view', @view)
+
+  every: (evt) =>
+    @latest_event = evt
+    @data_transfer = evt.dataTransfer
 
   # mouse first moves over controller while dragging
   drag_enter: (evt) =>
+    if @abort_drag_timeout
+      clearTimeout(@abort_drag_timeout)
+      @abort_drag_timeout = null
+
+    @every(evt)
     console.log "Drag enter", evt
     evt.preventDefault()
 
-    view_text('welcome to drag')
-    view.show()
+    @view_text('welcome to drag')
+    @view.show()
     
+    # assume we lost interest after a while
+    @abort_drag_timeout = setTimeout((-> @drag_leave(evt)).bind(this), 1000)
+
     return false
+
 
   # fired while mouse moves
   drag_over: (evt) =>
-    console.log "Drag over", evt
+    @every(evt)
+    #console.log "Drag over", evt
     # allow drops
     evt.preventDefault()
     return false
 
   drag_leave: (evt) =>
+    @every(evt)
     console.log "Drag leave", evt
     # hide targeting overlay
-    view.hide()
+    @view.hide()
+
+  drag_end: (evt) =>
+    @every(evt)
+    console.log "Drag end", evt
+    @drag_leave(evt)
 
   drop: (evt) =>
+    @every(evt)
     console.log "Drop!", evt
+    evt.preventDefault()  # don't navigate or whatever
 
+    item = window.ITEM = evt.dataTransfer.items[0]
+    console.log('GOT ITEM', item)
 
+    console.log('otherwise DT = ', evt.dataTransfer)
+    debug_cb = (msg = 'cb revealed') ->
+      (things...) -> console.log(msg, things...)
+
+    if item.type[0..5] == 'image/'
+      item.getAsString(debug_cb('as string'))
+      item.getAsFile(debug_cb('as file'))
+      console.log('perform upload here')
+    else if item.type is 'text/uri-list'
+      item.getAsString(debug_cb('as string'))
+      console.log('perform download here')
+      return
+    else
+      alert("Don't know nothin' bout #{item.type} dropper-doos, no sir!")
+
+    @drag_end(evt)
 
 
 $(document).ready () ->
 
   # we accept any dragging into the body
-  uc = new UploadController()
+  window.uc = uc = new UploadController()
   # $('body').on('dragstart', uc.drag_start)
   $('body').on('dragenter', uc.drag_enter)
   $('body').on('dragover', uc.drag_over)
-  $('body').on('drag', uc.drag_over)
+  $('body').on('drop', uc.drop)
+  #$('body').on('dragleave', uc.drag_leave)
   console.log($('body'), 'is ready')
 
   for el in $('tr.file')
