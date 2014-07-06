@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(name='squidwork',
-      version='0.0.8r2',
+      version='0.0.9',
       description='trivial JSON event protocol over ZeroMQ',
       author='Jake Teton-Landis',
       author_email='just.1.jake@gmail.com',
@@ -28,7 +28,7 @@ setup(name='squidwork',
       install_requires=[
           "pyzmq",
           "pyyaml",
-          "tornado=3.2.2",       # for web
+          "tornado < 4.0.0, >=3.2.2",       # for web
           "CoffeeScript",  # for web
           "sqlobject",      # for gifserver 
           "pyScss", # for minitor, needs pcre-dev or it pisses warnings
