@@ -12,3 +12,7 @@ liege.worker.py listens to wit.ai squidwork results and does things.
     The results of its operations are also broadcast as squidwork messages
 """
 __author__ = 'just.1.jake@gmail.com'
+
+if __name__ == '__main__':
+    from web import main()
+    main()

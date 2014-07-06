@@ -103,11 +103,26 @@ html, body {
 h1, h2, h3, h4, h5, h6 {
   @include p(0.9);
   margin-top: 0;
-
   @include cb($cyan);
+
+  ul {
+    float: right;
+    display: inline-block;
+    margin: 0;
+    vertical-align: baseline;
+  }
+  li {
+    display: inline;
+  }
 
   @include other-side {
     @include cb($magenta);
+  }
+}
+
+footer {
+  h3 {
+    margin-bottom: 0;
   }
 }
 

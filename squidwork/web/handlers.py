@@ -9,6 +9,9 @@ import re
 import os
 import inspect
 import logging
+from datetime import datetime
+from pprint import pformat
+from collections import OrderedDict
 
 
 def pretty_json(data, **kwargs):
@@ -74,6 +77,18 @@ class TemplateRenderer(tornado.web.RequestHandler):
     def get(self):
         self.write(self.template_string(self.args))
 
+class Timer(object):
+    def __init__(self):
+        self.start_time = datetime.today()
+        self.stops = []
+        self.latest_time = self.start_time
+
+    def lap(self):
+        new = datetime.today()
+        self.stops.append(new)
+        diff = new - self.latest_time
+        self.latest_time = new
+        return str(diff)
 
 class CoffeescriptHandler(TemplateRenderer):
     """
@@ -93,26 +108,29 @@ class CoffeescriptHandler(TemplateRenderer):
 
     @tornado.web.asynchronous
     def get(self):
+        timer = Timer()
+        times = dict()
 
-        self.write('/* rendering template ... */\n')
         # render template into coffeescript
         cs = self.template_string(self.args)
+        times['Rendering template'] = timer.lap()
 
         if cs in self.CACHE:
-            self.write(self.CACHE[cs])
-            self.finish()
-            return
-
-        # then compile to javascript
-        self.write('/* compiling coffeescript ... */\n')
-        js = coffeescript.compile(cs)
-
-        self.CACHE[cs] = js
+            js = self.CACHE[cs]
+            times['Retrieving from cache'] = timer.lap()
+        else:
+            # then compile to javascript
+            js = coffeescript.compile(cs)
+            times['Compiling coffeescript'] = timer.lap()
+            self.CACHE[cs] = js
 
         # and we're done!
         self.write(js)
-        self.write('/* finished! */\n')
-        self.finish()
+        times['Writing JS to wire'] = timer.lap()
+
+        self.finish('/* finished! time stats: \n' +
+                    pretty_json(times) +
+                    '*/')
 
 
 class JSONHandler(tornado.web.RequestHandler):

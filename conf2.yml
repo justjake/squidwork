@@ -102,4 +102,8 @@ services:
         images: /Users/jitl/Pictures/
         thumbs: /Users/jitl/Pictures/thumbs
         database: 'sqlite:///Users/jitl/src/Squidwork/gifs.sqlite'
+        app_secret: your mom is so fat the recusive function to computer her mass results in a stack overflow
+        password: peaklel
+
+        #database: 'sqlite:memory'
 

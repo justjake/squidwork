@@ -28,10 +28,10 @@ setup(name='squidwork',
       install_requires=[
           "pyzmq",
           "pyyaml",
-          "tornado",       # for web
+          "tornado=3.2.2",       # for web
           "CoffeeScript",  # for web
           "sqlobject",      # for gifserver 
-          "PIL",
           "pyScss", # for minitor, needs pcre-dev or it pisses warnings
-          "werkzeug"  # for debugging
+          "werkzeug",  # for debugging
+          'Wand'       # turns out PIL is shit, this should be better
         ])

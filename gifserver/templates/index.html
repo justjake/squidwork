@@ -7,6 +7,7 @@
 .....|___/\__,.|\__,_|_|\__,_|.\_/\_/.\___/|_|..|_|\_(_)
 .............|_|........................................
 -->
+<html>
 <head>
     <title>Gifs.Armada - Index of /{{ path }}</title>
     <link rel="stylesheet" href="/style.css"/>
@@ -20,15 +21,15 @@
         Index of /{{ path }}
         <small>
             {% if len(dirs) %}
-            <a href="#dirs">{{ len(dirs) }} folders</a>
+            <a title="Jump to folders" href="#dirs">{{ len(dirs) }} folders</a>
             {% end %}
 
             {% if len(files) %}
-            <a href="#files">{{ len(files) }} files</a>
+            <a title="Jump to files" href="#files">{{ len(files) }} files</a>
             {% end %}
         </small>
         {% if len(path) %}
-        <a style="float: right" href=".."><span class="arrow">⇪</span></a>
+        <a title="Go up one level" style="float: right" href=".."><span class="arrow">⇪</span></a>
         {% end %}
     </h1>
 </header>
@@ -108,5 +109,19 @@
     {% end %}
 </table>
 
+<footer>
+  <h3>
+    Powered by
+    <a href="https://github.com/justjake/squidwork">Squidwork</a>
+    <!--＆ <a href="https://www.isecpartners.com">iSEC Partners</a>-->
+        <small>
+        <ul>
+          <li><a title="Upload a file" href="/upload.exe">📤</a></li>
+          <li><a title="Authenticate" href="/auth.exe">🔐</a></li>
+        </ul>
+        </small>
+  </h3>
+</footer>
 
 </body>
+</html>

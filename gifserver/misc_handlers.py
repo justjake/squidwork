@@ -2,13 +2,14 @@ import re
 import os
 from StringIO import StringIO
 
-import Image
 from IPython import embed  # for debugging
 import tornado.web
 import squidwork.web.debuggable as debuggable
 from tornado.httpclient import AsyncHTTPClient
+from wand.image import Image
 
 from file_image import Image as WebImage, FileMeta, is_image
+from squidwork.web.auth import WithAuth, AuthHandler as BaseAuthHandler
 
 
 class HitCountImageServer(tornado.web.StaticFileHandler):
@@ -27,7 +28,7 @@ class HitCountImageServer(tornado.web.StaticFileHandler):
             meta = FileMeta.for_path(self.absolute_path)
             meta.hit()
             if is_image(self.absolute_path):
-                img = WebImage(self.absolute_path, None)
+                img = WebImage(self.absolute_path, self.root)
                 img.generate_thumb_in_background()
 
         return super(HitCountImageServer, self).get(path, include_body)
@@ -55,7 +56,7 @@ class HitCountImageServer(tornado.web.StaticFileHandler):
         return 'application/octet-stream'
 
 
-class CanUpload(debuggable.Handler):
+class CanUpload(debuggable.Handler, WithAuth):
     """
     on a post of a file and a filename, upload that file to that filename dest.
     on a post of a URI and a filename, HTTP GET that URi and save it to that
@@ -68,23 +69,25 @@ class CanUpload(debuggable.Handler):
     The root is the location to upload files inside of.
     """
 
-    illegal = re.compile(r'[^\w\d]')
+    # all illegal characters in filenames are removed
+    illegal = re.compile(r'[^\w]')
+    # all space characters in filenames are replaced with "-"
     spaces = re.compile(r'\s+|/+')
+    # long names are truncated
+    MAX_NAME_LENGTH = 400
+    MAX_FILE_SIZE = 50 * 1024 * 1024 # 50MB
 
-    def initialize(self, root, secret, debug=False):
+    def initialize(self, root, debug=False):
         super(CanUpload, self).initialize(debug=debug)
         self.root = root
-        self.secret = secret
 
+    @WithAuth.needs_auth
     def get(self):
         return self.render('upload.html', dest=self.root)
 
     # @tornado.web.asynchronous
+    @WithAuth.needs_auth
     def post(self):
-        given_secret = self.get_argument('key', 'lol incorrect key')
-        if given_secret != self.secret:
-            raise tornado.web.HTTPError(403, 'Incorrect key')
-
         dest = self.safe_dest(self.get_argument('fname'))
 
         uri = self.get_argument('uri', False)
@@ -104,11 +107,18 @@ class CanUpload(debuggable.Handler):
             raise tornado.web.HTTPError(400, 'No path given')
 
         safe = lambda s: self.illegal.sub('', s)
-        # santize a bit
+
         path, extension = os.path.splitext(path)
+
+        # apply max length
+        if len(path) > self.MAX_NAME_LENGTH:
+            path = path[:self.MAX_NAME_LENGTH-1]
+
+        # sanitize for naughty characters
         words = self.spaces.split(path)
         safe_words = [safe(w) for w in words]
         fname = '-'.join(safe_words) + '.' + safe(extension)
+
         abs_path = os.path.abspath(os.path.join(self.root, fname))
 
         if os.path.exists(abs_path):
@@ -141,7 +151,24 @@ class CanUpload(debuggable.Handler):
         no more validation
         only saving
         """
-        img = Image.open(StringIO(data))
-        img.save(path)
+        # Saves only images, some issue with PNG stuff:
+        #_, ext = os.path.splitext(path)
+        #ext = ext[1:] # '.png' --> 'png'
+        #with Image(file=StringIO(data)) as img:
+            #if img.format != ext:
+                #img = img.convert(ext)
+                #self.write('converted to {}\n'.format(ext))
+            #img.save(filename=path)
+        # thumbnail it anywas
+
+        # saves anything:
+        with open(path, 'w') as f:
+            f.write(data)
+
         self.finish('nice file :^)')
 
+
+class AuthHandler(BaseAuthHandler):
+    def get(self):
+        is_authed = self.is_authed(self.session)
+        return self.render('auth.html', is_authed=is_authed)

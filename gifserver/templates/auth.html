@@ -1,0 +1,14 @@
+<!doctype html>
+<!-- TODO: make a whole squidwork template heirarchy, think about a good
+           template language, actuall have views, etc etc etc -->
+<html>
+<head>
+<title>Auth</title>
+</head>
+<body>
+<p>Currently authed: <strong>{{ is_authed }}</strong></p>
+<form method="post" action="/auth">
+  <input type="password" name="key" placeholder="super secret key" />
+</form>
+</body>
+</html>
