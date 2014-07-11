@@ -22,6 +22,8 @@ def configure(args=None):
     config.option('app_secret')    # Cookie secret
     config.option('password')   # used for authing
     config.retrieve(args)
+    if config.images[-1] is not '/':
+        config.images += '/'
 
     # set up connections
     sqlhub.processConnection = connectionForURI(config.database)
